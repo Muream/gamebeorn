@@ -13,3 +13,7 @@ make_wram :: proc() -> WRAM {
 read_wram :: proc(m: ^WRAM, address: u16) -> u8 {
     return m.bytes[address]
 }
+
+write_wram :: proc(m: ^WRAM, address: u16, value: u8) {
+    m.bytes[address] = value
+}

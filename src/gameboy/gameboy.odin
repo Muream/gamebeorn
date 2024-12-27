@@ -2,6 +2,7 @@
 package gameboy
 
 import "core:fmt"
+import "core:log"
 
 import "../cpu"
 import "../memory"
@@ -12,7 +13,7 @@ GameBoy :: struct {
 }
 
 init :: proc() -> GameBoy {
-    fmt.println("Init GameBoy")
+    log.debug("Init GameBoy")
 
     c := cpu.init()
 

@@ -1,6 +1,7 @@
 package emulator
 
 import "core:fmt"
+import "core:log"
 
 import "../gameboy"
 
@@ -9,6 +10,6 @@ Emulator :: struct {
 }
 
 init :: proc() -> Emulator {
-    fmt.println("Init Emulator")
+    log.debug("Init Emulator")
     return Emulator{gameboy.init()}
 }

@@ -1,6 +1,7 @@
 package memory
 
 import "core:fmt"
+import "core:log"
 
 ROM :: struct {
     header: Header,
@@ -54,6 +55,10 @@ make_rom :: proc() -> ROM {
 }
 
 read_rom :: proc(self: ^ROM, address: u16) -> u8 {
-    fmt.printfln("reading ROM memory at %X", address)
+    log.debugf("reading ROM memory at %X", address)
     return self.bytes[address]
+}
+
+write_rom :: proc(self: ^ROM, address: u16, value: u8) {
+    self.bytes[address] = value
 }

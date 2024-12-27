@@ -3,10 +3,10 @@ version: "3"
 tasks:
   build:
     cmds:
-      - odin build src -out=build/beorn.exe
+      - odin build src/ -out=build/beorn.exe
   run:
     cmds:
-      - odin run src -out=build/beorn.exe
+      - odin run src/ -out=build/beorn.exe
   test:
     cmds:
-      - odin test src -out=build/beorn_test.exe -all-packages
+      - odin test tests/ -out=build/beorn_test.exe -all-packages

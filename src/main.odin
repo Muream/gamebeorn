@@ -8,9 +8,8 @@ import "cpu"
 import "emulator"
 import "memory"
 
+
 main :: proc() {
-    // mem := memory.init()
-    // fmt.println(mem)
     emu := emulator.init()
 
     filepath := `roms\blargg\cpu_instrs\cpu_instrs.gb`
