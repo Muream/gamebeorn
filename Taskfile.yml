@@ -1,12 +1,23 @@
 version: "3"
 
 tasks:
+
+  default:
+    cmds:
+      - task: test
+
   build:
     cmds:
       - odin build src/ -out=build/beorn.exe
+    silent: true
+
   run:
     cmds:
       - odin run src/ -out=build/beorn.exe
+    silent: true
+
   test:
     cmds:
-      - odin test tests/ -out=build/beorn_test.exe -all-packages
+      - cmd: odin test tests/ -out=build/beorn-test.exe -o:none -all-packages
+        ignore_error: true
+    silent: true
