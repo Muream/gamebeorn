@@ -81,7 +81,19 @@ adc_a_hl :: proc(self: ^CPU, mem: ^memory.Memory) {
 
     self.a = cast(u8)r
 }
-adc_a_n8 :: proc() {}
+adc_a_n8 :: proc(self: ^CPU, mem: ^memory.Memory) {
+    a := cast(u16)self.a
+    c := cast(u16)get_carry_flag(&self.regs)
+    v := cast(u16)next_byte(self, mem)
+    r := a + v + c
+
+    set_zero_flag(&self.regs, r & 0xFF == 0)
+    set_sub_flag(&self.regs, false)
+    set_half_carry_flag(&self.regs, (a & 0xF) + (v & 0xF) + c > 0xF)
+    set_carry_flag(&self.regs, r > 0xff)
+
+    self.a = cast(u8)r
+}
 
 add_a_r8 :: proc(self: ^CPU, mem: ^memory.Memory, register: Register) {
     reg := get_r8(self, register)
@@ -114,7 +126,20 @@ add_a_hl :: proc(self: ^CPU, mem: ^memory.Memory) {
     set_carry_flag(&self.regs, carry)
 }
 
-add_a_n8 :: proc() {}
+add_a_n8 :: proc(self: ^CPU, mem: ^memory.Memory) {
+    v := next_byte(self, mem)
+
+    res, carry := bits.overflowing_add(self.a, v)
+
+    half_carry := ((self.a & 0xf) + (v & 0xf)) & 0x10 == 0x10
+
+    self.a = res
+
+    set_zero_flag(&self.regs, self.a == 0)
+    set_sub_flag(&self.regs, false)
+    set_half_carry_flag(&self.regs, half_carry)
+    set_carry_flag(&self.regs, carry)
+}
 
 and_a_r8 :: proc(self: ^CPU, mem: ^memory.Memory, register: Register) {
     v := get_r8(self, register)^
@@ -138,7 +163,16 @@ and_a_hl :: proc(self: ^CPU, mem: ^memory.Memory) {
     set_carry_flag(&self.regs, false)
 }
 
-and_a_n8 :: proc() {}
+and_a_n8 :: proc(self: ^CPU, mem: ^memory.Memory) {
+    v := next_byte(self, mem)
+
+    self.a &= v
+
+    set_zero_flag(&self.regs, self.a == 0)
+    set_sub_flag(&self.regs, false)
+    set_half_carry_flag(&self.regs, true)
+    set_carry_flag(&self.regs, false)
+}
 
 cp_a_r8 :: proc(self: ^CPU, mem: ^memory.Memory, register: Register) {
     v := get_r8(self, register)^
@@ -165,7 +199,19 @@ cp_a_hl :: proc(self: ^CPU, mem: ^memory.Memory) {
     set_half_carry_flag(&self.regs, half_carry)
     set_carry_flag(&self.regs, carry)
 }
-cp_a_n8 :: proc() {}
+
+cp_a_n8 :: proc(self: ^CPU, mem: ^memory.Memory) {
+    v := next_byte(self, mem)
+
+    res, carry := bits.overflowing_sub(self.a, v)
+
+    half_carry := ((self.a & 0xf) - (v & 0xf)) & 0x10 == 0x10
+
+    set_zero_flag(&self.regs, res == 0)
+    set_sub_flag(&self.regs, true)
+    set_half_carry_flag(&self.regs, half_carry)
+    set_carry_flag(&self.regs, carry)
+}
 
 // Decrement value in register r8 by 1.
 dec_r8 :: proc(self: ^CPU, mem: ^memory.Memory, register: Register) {
@@ -248,7 +294,16 @@ or_a_hl :: proc(self: ^CPU, mem: ^memory.Memory) {
     set_half_carry_flag(&self.regs, false)
     set_carry_flag(&self.regs, false)
 }
-or_a_n8 :: proc() {}
+or_a_n8 :: proc(self: ^CPU, mem: ^memory.Memory) {
+    v := next_byte(self, mem)
+
+    self.a |= v
+
+    set_zero_flag(&self.regs, self.a == 0)
+    set_sub_flag(&self.regs, false)
+    set_half_carry_flag(&self.regs, false)
+    set_carry_flag(&self.regs, false)
+}
 
 sbc_a_r8 :: proc(self: ^CPU, mem: ^memory.Memory, register: Register) {
     a := cast(u16)self.a
@@ -281,7 +336,34 @@ sbc_a_hl :: proc(self: ^CPU, mem: ^memory.Memory) {
     self.a = cast(u8)r
 }
 
-sbc_a_n8 :: proc() {}
+sbc_a_n8 :: proc(self: ^CPU, mem: ^memory.Memory) {
+    a := cast(u16)self.a
+    c := cast(u16)get_carry_flag(&self.regs)
+    v := cast(u16)next_byte(self, mem)
+    r := a - v - c
+
+    set_zero_flag(&self.regs, r & 0xFF == 0)
+    set_sub_flag(&self.regs, true)
+    set_half_carry_flag(&self.regs, (a & 0xF) - (v & 0xF) - c > 0xF)
+    set_carry_flag(&self.regs, r > 0xff)
+
+    self.a = cast(u8)r
+}
+
+sub_a_n8 :: proc(self: ^CPU, mem: ^memory.Memory) {
+    v := next_byte(self, mem)
+
+    res, carry := bits.overflowing_sub(self.a, v)
+
+    half_carry := ((self.a & 0xf) - (v & 0xf)) & 0x10 == 0x10
+
+    self.a = res
+
+    set_zero_flag(&self.regs, self.a == 0)
+    set_sub_flag(&self.regs, true)
+    set_half_carry_flag(&self.regs, half_carry)
+    set_carry_flag(&self.regs, carry)
+}
 
 sub_a_r8 :: proc(self: ^CPU, mem: ^memory.Memory, register: Register) {
     reg := get_r8(self, register)
@@ -313,7 +395,6 @@ sub_a_hl :: proc(self: ^CPU, mem: ^memory.Memory) {
     set_carry_flag(&self.regs, carry)
 }
 
-sub_a_n8 :: proc() {}
 xor_a_r8 :: proc(self: ^CPU, mem: ^memory.Memory, register: Register) {
     v := get_r8(self, register)^
 
@@ -336,7 +417,16 @@ xor_a_hl :: proc(self: ^CPU, mem: ^memory.Memory) {
     set_carry_flag(&self.regs, false)
 }
 
-xor_a_n8 :: proc() {}
+xor_a_n8 :: proc(self: ^CPU, mem: ^memory.Memory) {
+    v := next_byte(self, mem)
+
+    self.a ~= v
+
+    set_zero_flag(&self.regs, self.a == 0)
+    set_sub_flag(&self.regs, false)
+    set_half_carry_flag(&self.regs, false)
+    set_carry_flag(&self.regs, false)
+}
 
 
 //// ---- 16-bit Arithmetic Instructions ----------------------------------------------
@@ -423,7 +513,23 @@ add_r16_r16 :: proc(self: ^CPU, mem: ^memory.Memory, r1: Register, r2: Register)
 }
 
 //// ---- Bit Operations Instructions -------------------------------------------------
+
+bit_u3_r8 :: proc() {}
+bit_u3_hl :: proc() {}
+res_u3_r8 :: proc() {}
+res_u3_hl :: proc() {}
+set_u3_r8 :: proc() {}
+set_u3_hl :: proc() {}
+swap_r8 :: proc() {}
+swap_hl :: proc() {}
+
 //// ---- Bit Shift Instructions ------------------------------------------------------
+
+rl_r8 :: proc() {}
+rl_hl :: proc() {}
+rla :: proc() {}
+rlc_r8 :: proc() {}
+rlc_hl :: proc() {}
 
 rlca :: proc(self: ^CPU, mem: ^memory.Memory) {
     // The carry flag is set to the leftmost bit
@@ -439,6 +545,12 @@ rlca :: proc(self: ^CPU, mem: ^memory.Memory) {
 
     set_carry_flag(&self.regs, carry)
 }
+
+rr_r8 :: proc() {}
+rr_hl :: proc() {}
+rra :: proc() {}
+rrc_r8 :: proc() {}
+rrc_hl :: proc() {}
 
 rrca :: proc(self: ^CPU, mem: ^memory.Memory) {
     // The carry flag is set to the leftmost bit
@@ -456,8 +568,12 @@ rrca :: proc(self: ^CPU, mem: ^memory.Memory) {
 
 }
 
-ccf :: proc(self: ^CPU, mem: ^memory.Memory) {}
-
+sla_r8 :: proc() {}
+sla_hl :: proc() {}
+sra_r8 :: proc() {}
+sra_hl :: proc() {}
+srl_r8 :: proc() {}
+srl_hl :: proc() {}
 
 //// ---- Load Instructions -----------------------------------------------------------
 
@@ -528,9 +644,20 @@ ld_r16_a :: proc(self: ^CPU, mem: ^memory.Memory, r1: Register) {
     memory.write(mem, addr, self.a)
 }
 
-ld_n16_a :: proc() {}
-ldh_n16_a :: proc() {}
-ldh_c_a :: proc() {}
+ld_n16_a :: proc(self: ^CPU, mem: ^memory.Memory) {
+    addr: u16 = next_word(self, mem)
+    memory.write(mem, addr, self.a)
+}
+
+ldh_n16_a :: proc(self: ^CPU, mem: ^memory.Memory) {
+    addr: u16 = 0xFF00 + cast(u16)next_byte(self, mem)
+    memory.write(mem, addr, self.a)
+}
+
+ldh_c_a :: proc(self: ^CPU, mem: ^memory.Memory) {
+    addr: u16 = 0xFF00 + cast(u16)self.c
+    memory.write(mem, addr, self.a)
+}
 
 // Load value in register A from the byte pointed to by register r16.
 ld_a_r16 :: proc(self: ^CPU, mem: ^memory.Memory, r1: Register) {
@@ -550,9 +677,20 @@ ld_a_r16 :: proc(self: ^CPU, mem: ^memory.Memory, r1: Register) {
     }
 }
 
-ld_a_n16 :: proc() {}
-ldh_a_n16 :: proc() {}
-ldh_a_c :: proc() {}
+ld_a_n16 :: proc(self: ^CPU, mem: ^memory.Memory) {
+    addr := next_word(self, mem)
+    self.a = memory.read(mem, addr)
+}
+
+ldh_a_n16 :: proc(self: ^CPU, mem: ^memory.Memory) {
+    addr: u16 = 0xFF00 + cast(u16)next_byte(self, mem)
+    self.a = memory.read(mem, addr)
+}
+
+ldh_a_c :: proc(self: ^CPU, mem: ^memory.Memory) {
+    addr: u16 = 0xFF00 + cast(u16)self.c
+    self.a = memory.read(mem, addr)
+}
 
 // Store value in register A into the byte pointed by HL and increment HL afterwards.
 ld_hli_a :: proc(self: ^CPU, mem: ^memory.Memory) {
@@ -575,14 +713,6 @@ ld_a_hld :: proc(self: ^CPU, mem: ^memory.Memory) {
     dec_r16(self, mem, .HL)
 }
 
-ld_n16_sp :: proc(self: ^CPU, mem: ^memory.Memory) {
-    // Store SP & $FF at address n16 and SP >> 8 at address n16 + 1.
-    addr := next_word(self, mem)
-    a := cast(u8)(self.sp & 0xFF)
-    b := cast(u8)(self.sp >> 8)
-    memory.write(mem, addr, a)
-    memory.write(mem, addr + 1, b)
-}
 //// ---- Jumps and Subroutines -------------------------------------------------------
 
 jr_n16 :: proc(self: ^CPU, mem: ^memory.Memory) {
@@ -594,8 +724,146 @@ jr_n16 :: proc(self: ^CPU, mem: ^memory.Memory) {
 jr_cc_n16 :: proc() {}
 
 //// ---- Stack Operations Instructions -----------------------------------------------
-//// ---- Miscellaneous Instructions --------------------------------------------------
 
+add_hl_sp :: proc() {}
+
+add_sp_e8 :: proc(self: ^CPU, mem: ^memory.Memory) {
+    value := cast(u16)cast(i16)transmute(i8)next_byte(self, mem)
+    result, _ := bits.overflowing_add(self.sp, value)
+
+    half_carry_mask: u16 = 0xF
+    half_carry :=
+        (self.sp & half_carry_mask) + (value & half_carry_mask) > half_carry_mask
+
+    carry_mask: u16 = 0xff
+    carry := (self.sp & carry_mask) + (value & carry_mask) > carry_mask
+
+    set_zero_flag(&self.regs, false)
+    set_sub_flag(&self.regs, false)
+    set_half_carry_flag(&self.regs, half_carry)
+    set_carry_flag(&self.regs, carry)
+
+    self.sp = result
+}
+
+dec_sp :: proc() {}
+inc_sp :: proc() {}
+ld_sp_n16 :: proc() {}
+
+ld_n16_sp :: proc(self: ^CPU, mem: ^memory.Memory) {
+    // Store SP & $FF at address n16 and SP >> 8 at address n16 + 1.
+    addr := next_word(self, mem)
+    a := cast(u8)(self.sp & 0xFF)
+    b := cast(u8)(self.sp >> 8)
+    memory.write(mem, addr, a)
+    memory.write(mem, addr + 1, b)
+}
+
+ld_hl_sp_e8 :: proc(self: ^CPU, mem: ^memory.Memory) {
+    value := cast(u16)cast(i16)transmute(i8)next_byte(self, mem)
+    result, _ := bits.overflowing_add(self.sp, value)
+
+    half_carry_mask: u16 = 0xF
+    half_carry :=
+        (self.sp & half_carry_mask) + (value & half_carry_mask) > half_carry_mask
+
+    carry_mask: u16 = 0xff
+    carry := (self.sp & carry_mask) + (value & carry_mask) > carry_mask
+
+    set_zero_flag(&self.regs, false)
+    set_sub_flag(&self.regs, false)
+    set_half_carry_flag(&self.regs, half_carry)
+    set_carry_flag(&self.regs, carry)
+
+    set_hl(&self.regs, result)
+}
+
+ld_sp_hl :: proc(self: ^CPU, mem: ^memory.Memory) {
+    self.sp = get_hl(&self.regs)
+}
+
+pop_af :: proc(self: ^CPU, mem: ^memory.Memory) {
+    self.f = memory.read(mem, self.sp) & 0b1111_0000
+    self.sp += 1
+
+    self.a = memory.read(mem, self.sp)
+    self.sp += 1
+}
+
+
+pop_r16 :: proc(self: ^CPU, mem: ^memory.Memory, register: Register) {
+    // ld LOW(r16), [sp] ; C, E or L
+    // inc sp
+    // ld HIGH(r16), [sp] ; B, D or H
+    // inc sp
+
+    low_reg: ^u8
+    high_reg: ^u8
+    #partial switch register {
+    case .BC:
+        low_reg = &self.c
+        high_reg = &self.b
+    case .DE:
+        low_reg = &self.e
+        high_reg = &self.d
+    case .HL:
+        low_reg = &self.l
+        high_reg = &self.h
+    case:
+        fmt.panicf("Invalid Register %v", register)
+    }
+
+    low_reg^ = memory.read(mem, self.sp)
+    self.sp += 1
+
+    high_reg^ = memory.read(mem, self.sp)
+    self.sp += 1
+}
+
+push_af :: proc(self: ^CPU, mem: ^memory.Memory) {
+    // dec sp
+    // ld [sp], a
+    // dec sp
+    // ld [sp], flag_Z << 7 | flag_N << 6 | flag_H << 5 | flag_C << 4
+
+    self.sp -= 1
+    memory.write(mem, self.sp, self.a)
+
+    self.sp -= 1
+    memory.write(mem, self.sp, self.f)
+
+}
+push_r16 :: proc(self: ^CPU, mem: ^memory.Memory, register: Register) {
+    // dec sp
+    // ld [sp], HIGH(r16) ; B, D or H
+    // dec sp
+    // ld [sp], LOW(r16) ; C, E or L
+
+    low_reg: ^u8
+    high_reg: ^u8
+    #partial switch register {
+    case .BC:
+        low_reg = &self.c
+        high_reg = &self.b
+    case .DE:
+        low_reg = &self.e
+        high_reg = &self.d
+    case .HL:
+        low_reg = &self.l
+        high_reg = &self.h
+    case:
+        fmt.panicf("Invalid Register %v", register)
+    }
+
+    self.sp -= 1
+    memory.write(mem, self.sp, low_reg^)
+
+    self.sp -= 1
+    memory.write(mem, self.sp, high_reg^)
+}
+
+
+//// ---- Miscellaneous Instructions --------------------------------------------------
 
 // JR_cc_n16 :: proc(self: ^CPU, condition: bool, address: u16) {
 //     if condition {

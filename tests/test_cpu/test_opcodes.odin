@@ -588,3 +588,231 @@ opcode_0xbe :: proc(t: ^testing.T) {test_opcode(t, "be")}
 
 @(test)
 opcode_0xbf :: proc(t: ^testing.T) {test_opcode(t, "bf")}
+
+// TODO:
+// @(test)
+// opcode_0xc0 :: proc(t: ^testing.T) {test_opcode(t, "c0")}
+
+@(test)
+opcode_0xc1 :: proc(t: ^testing.T) {test_opcode(t, "c1")}
+
+// @(test)
+// opcode_0xc2 :: proc(t: ^testing.T) {test_opcode(t, "c2")}
+
+// @(test)
+// opcode_0xc3 :: proc(t: ^testing.T) {test_opcode(t, "c3")}
+
+// @(test)
+// opcode_0xc4 :: proc(t: ^testing.T) {test_opcode(t, "c4")}
+
+@(test)
+opcode_0xc5 :: proc(t: ^testing.T) {test_opcode(t, "c5")}
+
+@(test)
+opcode_0xc6 :: proc(t: ^testing.T) {test_opcode(t, "c6")}
+
+// TODO:
+// @(test)
+// opcode_0xc7 :: proc(t: ^testing.T) {test_opcode(t, "c7")}
+
+// TODO:
+// @(test)
+// opcode_0xc8 :: proc(t: ^testing.T) {test_opcode(t, "c8")}
+
+// TODO:
+// @(test)
+// opcode_0xc9 :: proc(t: ^testing.T) {test_opcode(t, "c9")}
+
+// TODO:
+// @(test)
+// opcode_0xca :: proc(t: ^testing.T) {test_opcode(t, "ca")}
+
+// TODO:
+// @(test)
+// opcode_0xcb :: proc(t: ^testing.T) {test_opcode(t, "cb")}
+
+// TODO:
+// @(test)
+// opcode_0xcc :: proc(t: ^testing.T) {test_opcode(t, "cc")}
+
+// TODO:
+// @(test)
+// opcode_0xcd :: proc(t: ^testing.T) {test_opcode(t, "cd")}
+
+@(test)
+opcode_0xce :: proc(t: ^testing.T) {test_opcode(t, "ce")}
+
+// TODO:
+// @(test)
+// opcode_0xcf :: proc(t: ^testing.T) {test_opcode(t, "cf")}
+
+// TODO:
+// @(test)
+// opcode_0xd0 :: proc(t: ^testing.T) {test_opcode(t, "d0")}
+
+@(test)
+opcode_0xd1 :: proc(t: ^testing.T) {test_opcode(t, "d1")}
+
+// TODO:
+// @(test)
+// opcode_0xd2 :: proc(t: ^testing.T) {test_opcode(t, "d2")}
+
+// TODO:
+// @(test)
+// opcode_0xd3 :: proc(t: ^testing.T) {test_opcode(t, "d3")}
+
+// TODO:
+// @(test)
+// opcode_0xd4 :: proc(t: ^testing.T) {test_opcode(t, "d4")}
+
+@(test)
+opcode_0xd5 :: proc(t: ^testing.T) {test_opcode(t, "d5")}
+
+@(test)
+opcode_0xd6 :: proc(t: ^testing.T) {test_opcode(t, "d6")}
+
+// TODO:
+// @(test)
+// opcode_0xd7 :: proc(t: ^testing.T) {test_opcode(t, "d7")}
+
+// TODO:
+// @(test)
+// opcode_0xd8 :: proc(t: ^testing.T) {test_opcode(t, "d8")}
+
+// TODO:
+// @(test)
+// opcode_0xd9 :: proc(t: ^testing.T) {test_opcode(t, "d9")}
+
+// TODO:
+// @(test)
+// opcode_0xda :: proc(t: ^testing.T) {test_opcode(t, "da")}
+
+// TODO:
+// @(test)
+// opcode_0xdb :: proc(t: ^testing.T) {test_opcode(t, "db")}
+
+// TODO:
+// @(test)
+// opcode_0xdc :: proc(t: ^testing.T) {test_opcode(t, "dc")}
+
+// TODO:
+// @(test)
+// opcode_0xdd :: proc(t: ^testing.T) {test_opcode(t, "dd")}
+
+@(test)
+opcode_0xde :: proc(t: ^testing.T) {test_opcode(t, "de")}
+
+// TODO:
+// @(test)
+// opcode_0xdf :: proc(t: ^testing.T) {test_opcode(t, "df")}
+
+@(test)
+opcode_0xe0 :: proc(t: ^testing.T) {test_opcode(t, "e0")}
+
+@(test)
+opcode_0xe1 :: proc(t: ^testing.T) {test_opcode(t, "e1")}
+
+@(test)
+opcode_0xe2 :: proc(t: ^testing.T) {test_opcode(t, "e2")}
+
+// ILLEGAL
+// @(test)
+// opcode_0xe3 :: proc(t: ^testing.T) {test_opcode(t, "e3")}
+
+// ILLEGAL
+// @(test)
+// opcode_0xe4 :: proc(t: ^testing.T) {test_opcode(t, "e4")}
+
+@(test)
+opcode_0xe5 :: proc(t: ^testing.T) {test_opcode(t, "e5")}
+
+@(test)
+opcode_0xe6 :: proc(t: ^testing.T) {test_opcode(t, "e6")}
+
+// TODO:
+// @(test)
+// opcode_0xe7 :: proc(t: ^testing.T) {test_opcode(t, "e7")}
+
+@(test)
+opcode_0xe8 :: proc(t: ^testing.T) {test_opcode(t, "e8")}
+
+// TODO:
+// @(test)
+// opcode_0xe9 :: proc(t: ^testing.T) {test_opcode(t, "e9")}
+
+@(test)
+opcode_0xea :: proc(t: ^testing.T) {test_opcode(t, "ea")}
+
+// ILLEGAL
+// @(test)
+// opcode_0xeb :: proc(t: ^testing.T) {test_opcode(t, "eb")}
+
+// ILLEGAL
+// @(test)
+// opcode_0xec :: proc(t: ^testing.T) {test_opcode(t, "ec")}
+
+// ILLEGAL
+// @(test)
+// opcode_0xed :: proc(t: ^testing.T) {test_opcode(t, "ed")}
+
+@(test)
+opcode_0xee :: proc(t: ^testing.T) {test_opcode(t, "ee")}
+
+// TODO:
+// @(test)
+// opcode_0xef :: proc(t: ^testing.T) {test_opcode(t, "ef")}
+
+@(test)
+opcode_0xf0 :: proc(t: ^testing.T) {test_opcode(t, "f0")}
+
+@(test)
+opcode_0xf1 :: proc(t: ^testing.T) {test_opcode(t, "f1")}
+
+@(test)
+opcode_0xf2 :: proc(t: ^testing.T) {test_opcode(t, "f2")}
+
+// TODO:
+// @(test)
+// opcode_0xf3 :: proc(t: ^testing.T) {test_opcode(t, "f3")}
+
+// ILLEGAL
+// @(test)
+// opcode_0xf4 :: proc(t: ^testing.T) {test_opcode(t, "f4")}
+
+@(test)
+opcode_0xf5 :: proc(t: ^testing.T) {test_opcode(t, "f5")}
+
+@(test)
+opcode_0xf6 :: proc(t: ^testing.T) {test_opcode(t, "f6")}
+
+// TODO:
+// @(test)
+// opcode_0xf7 :: proc(t: ^testing.T) {test_opcode(t, "f7")}
+
+@(test)
+opcode_0xf8 :: proc(t: ^testing.T) {test_opcode(t, "f8")}
+
+@(test)
+opcode_0xf9 :: proc(t: ^testing.T) {test_opcode(t, "f9")}
+
+@(test)
+opcode_0xfa :: proc(t: ^testing.T) {test_opcode(t, "fa")}
+
+// TODO:
+// @(test)
+// opcode_0xfb :: proc(t: ^testing.T) {test_opcode(t, "fb")}
+
+// ILLEGAL
+// @(test)
+// opcode_0xfc :: proc(t: ^testing.T) {test_opcode(t, "fc")}
+
+// ILLEGAL
+// @(test)
+// opcode_0xfd :: proc(t: ^testing.T) {test_opcode(t, "fd")}
+
+@(test)
+opcode_0xfe :: proc(t: ^testing.T) {test_opcode(t, "fe")}
+
+// TODO:
+// @(test)
+// opcode_0xff :: proc(t: ^testing.T) {test_opcode(t, "ff")}

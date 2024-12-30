@@ -369,10 +369,10 @@ step :: proc(self: ^CPU, mem: ^memory.Memory) -> uint {
         ld_r8_n8(self, mem, .A)
         return 2
 
-    // CCF
-    case 0x3F:
-        ccf(self, mem)
-        return 1
+    // TODO:
+    // // CCF
+    // case 0x3F:
+    //     return 1
 
     // LD B, B
     case 0x40:
@@ -1014,6 +1014,327 @@ step :: proc(self: ^CPU, mem: ^memory.Memory) -> uint {
     case 0xBF:
         cp_a_r8(self, mem, .A)
         return 1
+
+    // TODO:
+    // // RET NZ
+    // case 0xC0:
+    //     return 5
+
+    // POP BC
+    case 0xC1:
+        pop_r16(self, mem, .BC)
+        return 3
+
+    // TODO:
+    // // JP
+    // case 0xC2:
+    //     return 4
+
+    // TODO:
+    // // JP
+    // case 0xC3:
+    //     return 4
+
+    // TODO:
+    // // CALL
+    // case 0xC4:
+    //     return 6
+
+    // PUSH BC
+    case 0xC5:
+        push_r16(self, mem, .BC)
+        return 4
+
+    // ADD A,n8
+    case 0xC6:
+        add_a_n8(self, mem)
+        return 2
+
+    // TODO:
+    // // RST $00 
+    // case 0xC7:
+    //     return 4
+
+    // TODO:
+    // // RET Z
+    // case 0xC8:
+    //     return 5
+
+    // TODO:
+    // // RET
+    // case 0xC9:
+    //     return 4
+
+    // TODO:
+    // // JP Z,a16
+    // case 0xCA:
+    //     return 4
+
+    // TODO:
+    // // PREFIX
+    // case 0xCB:
+    //     return 1
+
+    // TODO:
+    // // CALL Z,a16
+    // case 0xCC:
+    //     return 6
+
+    // TODO:
+    // // CALL a16
+    // case 0xCD:
+    //     return 6
+
+    // ADC A,n8
+    case 0xCE:
+        adc_a_n8(self, mem)
+        return 2
+
+    // TODO:
+    // // RST $08
+    // case 0xCF:
+    //     return 4
+
+    // TODO:
+    // // RET NC
+    // case 0xD0:
+    //     return 5
+
+    // POP DE
+    case 0xD1:
+        pop_r16(self, mem, .DE)
+        return 3
+
+    // TODO:
+    // // JP NC, a16
+    // case 0xD2:
+    //     return 4
+
+    // TODO:
+    // // ILLEGAL_D3
+    // case 0xD3:
+    //     panic("Illegal Instruction: 0xD3")
+
+    // TODO:
+    // // CALL NC, a16
+    // case 0xD4:
+    //     return 6
+
+    // PUSH DE 
+    case 0xD5:
+        push_r16(self, mem, .DE)
+        return 4
+
+    // SUB A, n8
+    case 0xD6:
+        sub_a_n8(self, mem)
+        return 2
+
+    // TODO:
+    // // RST
+    // case 0xD7:
+    //     return 4
+
+    // TODO:
+    // // RET
+    // case 0xD8:
+    //     return 5
+
+    // TODO:
+    // // RETI
+    // case 0xD9:
+    //     return 4
+
+    // TODO:
+    // // JP
+    // case 0xDA:
+    //     return 4
+
+    // TODO:
+    // // ILLEGAL_DB
+    // case 0xDB:
+    //     panic("Illegal Instruction: 0xDB")
+
+    // TODO:
+    // // CALL
+    // case 0xDC:
+    //     return 6
+
+    // TODO:
+    // // ILLEGAL_DD
+    // case 0xDD:
+    //     panic("Illegal Instruction: 0xDD")
+
+    // SBC A, n8
+    case 0xDE:
+        sbc_a_n8(self, mem)
+        return 2
+
+    // TODO:
+    // // RST
+    // case 0xDF:
+    //     return 4
+
+    // LDH [a8], A
+    case 0xE0:
+        ldh_n16_a(self, mem)
+        return 3
+
+    // POP HL
+    case 0xE1:
+        pop_r16(self, mem, .HL)
+        return 3
+
+    // LDH [C], A
+    case 0xE2:
+        ldh_c_a(self, mem)
+        return 2
+
+    // TODO:
+    // // ILLEGAL_E3
+    // case 0xE3:
+    //     panic("Illegal Instruction: 0xE3")
+
+    // TODO:
+    // // ILLEGAL_E4
+    // case 0xE4:
+    //     panic("Illegal Instruction: 0xE4")
+
+    // PUSH HL
+    case 0xE5:
+        push_r16(self, mem, .HL)
+        return 4
+
+    // AND A, n8
+    case 0xE6:
+        and_a_n8(self, mem)
+        return 2
+
+    // TODO:
+    // // RST
+    // case 0xE7:
+    //     return 4
+
+    // ADD SP, e8
+    case 0xE8:
+        add_sp_e8(self, mem)
+        return 4
+
+    // TODO:
+    // // JP
+    // case 0xE9:
+    //     return 1
+
+    // LD [a16], A
+    case 0xEA:
+        ld_n16_a(self, mem)
+        return 4
+
+    // TODO:
+    // // ILLEGAL_EB
+    // case 0xEB:
+    //     panic("Illegal Instruction: 0xEB")
+
+    // TODO:
+    // // ILLEGAL_EC
+    // case 0xEC:
+    //     panic("Illegal Instruction: 0xEC")
+
+    // TODO:
+    // // ILLEGAL_ED
+    // case 0xED:
+    //     panic("Illegal Instruction: 0xED")
+
+    // XOR A, n8
+    case 0xEE:
+        xor_a_n8(self, mem)
+        return 2
+
+    // TODO:
+    // // RST $28
+    // case 0xEF:
+    //     return 4
+
+    // LDH A, [a8]
+    case 0xF0:
+        ldh_a_n16(self, mem)
+        return 3
+
+    // POP AF
+    case 0xF1:
+        pop_af(self, mem)
+        return 3
+
+    // LDH A, [C]
+    case 0xF2:
+        ldh_a_c(self, mem)
+        return 2
+
+    // TODO:
+    // // DI
+    // case 0xF3:
+    //     return 1
+
+    // TODO:
+    // // ILLEGAL_F4
+    // case 0xF4:
+    //     panic("Illegal Instruction: 0xF4")
+
+    // PUSH AF 
+    case 0xF5:
+        push_af(self, mem)
+        return 4
+
+    // OR A, n8
+    case 0xF6:
+        or_a_n8(self, mem)
+        return 2
+
+    // TODO:
+    // // RST
+    // case 0xF7:
+    //     return 4
+
+    // LD HL, SP + e8
+    case 0xF8:
+        ld_hl_sp_e8(self, mem)
+        return 3
+
+    // LD SP, HL
+    case 0xF9:
+        ld_sp_hl(self, mem)
+        return 2
+
+    // LD A, [a16]
+    case 0xFA:
+        ld_a_n16(self, mem)
+        return 4
+
+    // TODO:
+    // // EI
+    // case 0xFB:
+    //     return 1
+
+    // TODO:
+    // // ILLEGAL_FC
+    // case 0xFC:
+    //     panic("Illegal Instruction: 0xFC")
+
+    // TODO:
+    // // ILLEGAL_FD
+    // case 0xFD:
+    //     panic("Illegal Instruction: 0xFD")
+
+    // CP
+    case 0xFE:
+        cp_a_n8(self, mem)
+        return 2
+
+    // TODO:
+    // // RST
+    // case 0xFF:
+    //     return 4
+
 
     case:
         fmt.panicf("Unknown Opcode: 0x{:02X} @ 0x{:04X}", opcode, self.regs.pc - 1)
