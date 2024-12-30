@@ -66,9 +66,8 @@ set_carry_flag :: proc(self: ^Registers, value: bool) {
 }
 
 get_carry_flag :: proc(self: ^Registers) -> bool {
-    return self.f & 0b1000_0000 == 0b1000_0000
+    return self.f & 0b0001_0000 == 0b0001_0000
 }
-
 
 reset_flags :: proc(self: ^Registers) {
     self.f = 0

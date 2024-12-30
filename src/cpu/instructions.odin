@@ -50,20 +50,122 @@ get_r8 :: proc(self: ^CPU, register: Register) -> ^u8 {
 
 //// ---- 8-bit Arithmetic and Logic Instructions -------------------------------------
 
-// Increment value in register r8 by 1.
-inc_r8 :: proc(self: ^CPU, mem: ^memory.Memory, register: Register) {
+// Add the value in r8 plus the carry flag to A.
+adc_a_r8 :: proc(self: ^CPU, mem: ^memory.Memory, register: Register) {
+    a := cast(u16)self.a
+    c := cast(u16)get_carry_flag(&self.regs)
+    v := cast(u16)get_r8(self, register)^
+    r := a + v + c
+
+    set_zero_flag(&self.regs, r & 0xFF == 0)
+    set_sub_flag(&self.regs, false)
+    set_half_carry_flag(&self.regs, (a & 0xF) + (v & 0xF) + c > 0xF)
+    set_carry_flag(&self.regs, r > 0xff)
+
+    self.a = cast(u8)r
+}
+
+adc_a_hl :: proc(self: ^CPU, mem: ^memory.Memory) {
+    a := cast(u16)self.a
+    c := cast(u16)get_carry_flag(&self.regs)
+
+    addr := get_hl(&self.regs)
+    v := cast(u16)memory.read(mem, addr)
+
+    r := a + v + c
+
+    set_zero_flag(&self.regs, r & 0xFF == 0)
+    set_sub_flag(&self.regs, false)
+    set_half_carry_flag(&self.regs, (a & 0xF) + (v & 0xF) + c > 0xF)
+    set_carry_flag(&self.regs, r > 0xff)
+
+    self.a = cast(u8)r
+}
+adc_a_n8 :: proc() {}
+
+add_a_r8 :: proc(self: ^CPU, mem: ^memory.Memory, register: Register) {
     reg := get_r8(self, register)
 
-    res, carry := bits.overflowing_add(reg^, 1)
+    res, carry := bits.overflowing_add(self.a, reg^)
 
-    half_carry := ((reg^ & 0xf) + (1 & 0xf)) & 0x10 == 0x10
+    half_carry := ((self.a & 0xf) + (reg^ & 0xf)) & 0x10 == 0x10
 
-    reg^ = res
+    self.a = res
 
-    set_zero_flag(&self.regs, reg^ == 0)
+    set_zero_flag(&self.regs, self.a == 0)
     set_sub_flag(&self.regs, false)
     set_half_carry_flag(&self.regs, half_carry)
+    set_carry_flag(&self.regs, carry)
 }
+
+add_a_hl :: proc(self: ^CPU, mem: ^memory.Memory) {
+    addr := get_hl(&self.regs)
+    value := memory.read(mem, addr)
+
+    res, carry := bits.overflowing_add(self.a, value)
+
+    half_carry := ((self.a & 0xf) + (value & 0xf)) & 0x10 == 0x10
+
+    self.a = res
+
+    set_zero_flag(&self.regs, self.a == 0)
+    set_sub_flag(&self.regs, false)
+    set_half_carry_flag(&self.regs, half_carry)
+    set_carry_flag(&self.regs, carry)
+}
+
+add_a_n8 :: proc() {}
+
+and_a_r8 :: proc(self: ^CPU, mem: ^memory.Memory, register: Register) {
+    v := get_r8(self, register)^
+
+    self.a &= v
+
+    set_zero_flag(&self.regs, self.a == 0)
+    set_sub_flag(&self.regs, false)
+    set_half_carry_flag(&self.regs, true)
+    set_carry_flag(&self.regs, false)
+}
+
+and_a_hl :: proc(self: ^CPU, mem: ^memory.Memory) {
+    v := memory.read(mem, get_hl(&self.regs))
+
+    self.a &= v
+
+    set_zero_flag(&self.regs, self.a == 0)
+    set_sub_flag(&self.regs, false)
+    set_half_carry_flag(&self.regs, true)
+    set_carry_flag(&self.regs, false)
+}
+
+and_a_n8 :: proc() {}
+
+cp_a_r8 :: proc(self: ^CPU, mem: ^memory.Memory, register: Register) {
+    v := get_r8(self, register)^
+
+    res, carry := bits.overflowing_sub(self.a, v)
+
+    half_carry := ((self.a & 0xf) - (v & 0xf)) & 0x10 == 0x10
+
+    set_zero_flag(&self.regs, res == 0)
+    set_sub_flag(&self.regs, true)
+    set_half_carry_flag(&self.regs, half_carry)
+    set_carry_flag(&self.regs, carry)
+}
+
+cp_a_hl :: proc(self: ^CPU, mem: ^memory.Memory) {
+    v := memory.read(mem, get_hl(&self.regs))
+
+    res, carry := bits.overflowing_sub(self.a, v)
+
+    half_carry := ((self.a & 0xf) - (v & 0xf)) & 0x10 == 0x10
+
+    set_zero_flag(&self.regs, res == 0)
+    set_sub_flag(&self.regs, true)
+    set_half_carry_flag(&self.regs, half_carry)
+    set_carry_flag(&self.regs, carry)
+}
+cp_a_n8 :: proc() {}
 
 // Decrement value in register r8 by 1.
 dec_r8 :: proc(self: ^CPU, mem: ^memory.Memory, register: Register) {
@@ -79,7 +181,38 @@ dec_r8 :: proc(self: ^CPU, mem: ^memory.Memory, register: Register) {
     set_half_carry_flag(&self.regs, half_carry)
 }
 
-inc_HL :: proc(self: ^CPU, mem: ^memory.Memory) {
+dec_hl :: proc(self: ^CPU, mem: ^memory.Memory) {
+    addr := get_hl(&self.regs)
+
+    value := memory.read(mem, addr)
+    res, carry := bits.overflowing_sub(value, 1)
+
+    half_carry := ((value & 0xf) - (1 & 0xf)) & 0x10 == 0x10
+
+    memory.write(mem, addr, res)
+
+    set_zero_flag(&self.regs, res == 0)
+    set_sub_flag(&self.regs, true)
+    set_half_carry_flag(&self.regs, half_carry)
+}
+
+
+// Increment value in register r8 by 1.
+inc_r8 :: proc(self: ^CPU, mem: ^memory.Memory, register: Register) {
+    reg := get_r8(self, register)
+
+    res, carry := bits.overflowing_add(reg^, 1)
+
+    half_carry := ((reg^ & 0xf) + (1 & 0xf)) & 0x10 == 0x10
+
+    reg^ = res
+
+    set_zero_flag(&self.regs, reg^ == 0)
+    set_sub_flag(&self.regs, false)
+    set_half_carry_flag(&self.regs, half_carry)
+}
+
+inc_hl :: proc(self: ^CPU, mem: ^memory.Memory) {
     addr := get_hl(&self.regs)
 
     value := memory.read(mem, addr)
@@ -94,20 +227,117 @@ inc_HL :: proc(self: ^CPU, mem: ^memory.Memory) {
     set_half_carry_flag(&self.regs, half_carry)
 }
 
-dec_HL :: proc(self: ^CPU, mem: ^memory.Memory) {
+or_a_r8 :: proc(self: ^CPU, mem: ^memory.Memory, register: Register) {
+    v := get_r8(self, register)^
+
+    self.a |= v
+
+    set_zero_flag(&self.regs, self.a == 0)
+    set_sub_flag(&self.regs, false)
+    set_half_carry_flag(&self.regs, false)
+    set_carry_flag(&self.regs, false)
+}
+
+or_a_hl :: proc(self: ^CPU, mem: ^memory.Memory) {
+    v := memory.read(mem, get_hl(&self.regs))
+
+    self.a |= v
+
+    set_zero_flag(&self.regs, self.a == 0)
+    set_sub_flag(&self.regs, false)
+    set_half_carry_flag(&self.regs, false)
+    set_carry_flag(&self.regs, false)
+}
+or_a_n8 :: proc() {}
+
+sbc_a_r8 :: proc(self: ^CPU, mem: ^memory.Memory, register: Register) {
+    a := cast(u16)self.a
+    c := cast(u16)get_carry_flag(&self.regs)
+    v := cast(u16)get_r8(self, register)^
+    r := a - v - c
+
+    set_zero_flag(&self.regs, r & 0xFF == 0)
+    set_sub_flag(&self.regs, true)
+    set_half_carry_flag(&self.regs, (a & 0xF) - (v & 0xF) - c > 0xF)
+    set_carry_flag(&self.regs, r > 0xff)
+
+    self.a = cast(u8)r
+}
+
+sbc_a_hl :: proc(self: ^CPU, mem: ^memory.Memory) {
+    a := cast(u16)self.a
+    c := cast(u16)get_carry_flag(&self.regs)
+
     addr := get_hl(&self.regs)
+    v := cast(u16)memory.read(mem, addr)
 
-    value := memory.read(mem, addr)
-    res, carry := bits.overflowing_sub(value, 1)
+    r := a - v - c
 
-    half_carry := ((value & 0xf) - (1 & 0xf)) & 0x10 == 0x10
+    set_zero_flag(&self.regs, r & 0xFF == 0)
+    set_sub_flag(&self.regs, true)
+    set_half_carry_flag(&self.regs, (a & 0xF) - (v & 0xF) - c > 0xF)
+    set_carry_flag(&self.regs, r > 0xff)
 
-    memory.write(mem, addr, res)
+    self.a = cast(u8)r
+}
 
-    set_zero_flag(&self.regs, res == 0)
+sbc_a_n8 :: proc() {}
+
+sub_a_r8 :: proc(self: ^CPU, mem: ^memory.Memory, register: Register) {
+    reg := get_r8(self, register)
+
+    res, carry := bits.overflowing_sub(self.a, reg^)
+
+    half_carry := ((self.a & 0xf) - (reg^ & 0xf)) & 0x10 == 0x10
+
+    self.a = res
+
+    set_zero_flag(&self.regs, self.a == 0)
     set_sub_flag(&self.regs, true)
     set_half_carry_flag(&self.regs, half_carry)
+    set_carry_flag(&self.regs, carry)
 }
+
+sub_a_hl :: proc(self: ^CPU, mem: ^memory.Memory) {
+    v := memory.read(mem, get_hl(&self.regs))
+
+    res, carry := bits.overflowing_sub(self.a, v)
+
+    half_carry := ((self.a & 0xf) - (v & 0xf)) & 0x10 == 0x10
+
+    self.a = res
+
+    set_zero_flag(&self.regs, self.a == 0)
+    set_sub_flag(&self.regs, true)
+    set_half_carry_flag(&self.regs, half_carry)
+    set_carry_flag(&self.regs, carry)
+}
+
+sub_a_n8 :: proc() {}
+xor_a_r8 :: proc(self: ^CPU, mem: ^memory.Memory, register: Register) {
+    v := get_r8(self, register)^
+
+    self.a ~= v
+
+    set_zero_flag(&self.regs, self.a == 0)
+    set_sub_flag(&self.regs, false)
+    set_half_carry_flag(&self.regs, false)
+    set_carry_flag(&self.regs, false)
+}
+
+xor_a_hl :: proc(self: ^CPU, mem: ^memory.Memory) {
+    v := memory.read(mem, get_hl(&self.regs))
+
+    self.a ~= v
+
+    set_zero_flag(&self.regs, self.a == 0)
+    set_sub_flag(&self.regs, false)
+    set_half_carry_flag(&self.regs, false)
+    set_carry_flag(&self.regs, false)
+}
+
+xor_a_n8 :: proc() {}
+
 
 //// ---- 16-bit Arithmetic Instructions ----------------------------------------------
 

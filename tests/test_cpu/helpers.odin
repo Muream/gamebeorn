@@ -91,7 +91,13 @@ verify_state :: proc(t: ^testing.T, emu: ^emulator.Emulator, state: State) {
     testing.expect_value(t, emu.gb.cpu.c, state.c)
     testing.expect_value(t, emu.gb.cpu.d, state.d)
     testing.expect_value(t, emu.gb.cpu.e, state.e)
-    testing.expect_value(t, emu.gb.cpu.f, state.f)
+    testing.expectf(
+        t,
+        emu.gb.cpu.f == state.f,
+        "expected emu.gb.cpu.f to be %08b, got %08b",
+        state.f,
+        emu.gb.cpu.f,
+    )
     testing.expect_value(t, emu.gb.cpu.h, state.h)
     testing.expect_value(t, emu.gb.cpu.l, state.l)
     testing.expect_value(t, emu.gb.cpu.sp, state.sp)
@@ -108,6 +114,7 @@ test_opcode :: proc(t: ^testing.T, opcode: string) {
 
     for test in tests {
         configure_state(&emu, test.initial)
+        verify_state(t, &emu, test.initial)
 
         cpu.step(&emu.gb.cpu, &emu.gb.mem)
 

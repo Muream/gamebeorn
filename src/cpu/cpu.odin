@@ -60,12 +60,12 @@ step :: proc(self: ^CPU, mem: ^memory.Memory) -> uint {
         inc_r16(self, mem, .BC)
         return 2
 
-    // INC B 
+    // INC B
     case 0x04:
         inc_r8(self, mem, .B)
         return 1
 
-    // DEC B 
+    // DEC B
     case 0x05:
         dec_r8(self, mem, .B)
         return 1
@@ -85,7 +85,7 @@ step :: proc(self: ^CPU, mem: ^memory.Memory) -> uint {
         ld_n16_sp(self, mem)
         return 5
 
-    // ADD HL, BC 
+    // ADD HL, BC
     case 0x09:
         add_r16_r16(self, mem, .HL, .BC)
         return 2
@@ -100,12 +100,12 @@ step :: proc(self: ^CPU, mem: ^memory.Memory) -> uint {
         dec_r16(self, mem, .BC)
         return 2
 
-    // INC C 
+    // INC C
     case 0x0C:
         inc_r8(self, mem, .C)
         return 1
 
-    // DEC C 
+    // DEC C
     case 0x0D:
         dec_r8(self, mem, .C)
         return 1
@@ -125,12 +125,12 @@ step :: proc(self: ^CPU, mem: ^memory.Memory) -> uint {
         // TODO: should this do something else?
         return 0
 
-    // LD DE, n16 
+    // LD DE, n16
     case 0x11:
         ld_r16_n16(self, mem, .DE)
         return 3
 
-    // LD [DE], A 
+    // LD [DE], A
     case 0x12:
         ld_r16_a(self, mem, .DE)
         return 2
@@ -145,7 +145,7 @@ step :: proc(self: ^CPU, mem: ^memory.Memory) -> uint {
         inc_r8(self, mem, .D)
         return 1
 
-    // DEC D 
+    // DEC D
     case 0x15:
         dec_r8(self, mem, .D)
         return 1
@@ -178,7 +178,7 @@ step :: proc(self: ^CPU, mem: ^memory.Memory) -> uint {
 
     //     return 1
 
-    // JR e8 
+    // JR e8
     case 0x18:
         jr_n16(self, mem)
         return 3
@@ -218,7 +218,7 @@ step :: proc(self: ^CPU, mem: ^memory.Memory) -> uint {
     // case 0x1F:
 
     // TODO:
-    // // JR NZ, e8 
+    // // JR NZ, e8
     // case 0x20:
 
     // LD HL, n16
@@ -257,7 +257,8 @@ step :: proc(self: ^CPU, mem: ^memory.Memory) -> uint {
     //     daa()
     //     return 1
 
-    // // JR Z, e8 
+    // TODO:
+    // // JR Z, e8
     // case 0x28:
 
     // ADD HL, HL
@@ -290,10 +291,10 @@ step :: proc(self: ^CPU, mem: ^memory.Memory) -> uint {
         ld_r8_n8(self, mem, .L)
         return 2
 
-    // TODO:
-    // CPL
-    case 0x2F:
-        return 1
+    // // TODO:
+    // // CPL
+    // case 0x2F:
+    //     return 1
 
     // // TODO:
     // // JR NC, e8
@@ -317,12 +318,12 @@ step :: proc(self: ^CPU, mem: ^memory.Memory) -> uint {
 
     //  INC [HL]
     case 0x34:
-        inc_HL(self, mem)
+        inc_hl(self, mem)
         return 4
 
     //  DEC [HL]
     case 0x35:
-        dec_HL(self, mem)
+        dec_hl(self, mem)
         return 4
 
     // LD [HL], n8
@@ -643,10 +644,10 @@ step :: proc(self: ^CPU, mem: ^memory.Memory) -> uint {
         ld_hl_r8(self, mem, .L)
         return 1
 
-    // TODO:
-    // HALT
-    case 0x76:
-        return 1
+    // // TODO:
+    // // HALT
+    // case 0x76:
+    //     return 1
 
     // LD [HL], A
     case 0x77:
@@ -693,8 +694,328 @@ step :: proc(self: ^CPU, mem: ^memory.Memory) -> uint {
         ld_r8_r8(self, mem, .A, .A)
         return 1
 
+    // ADD A, B
+    case 0x80:
+        add_a_r8(self, mem, .B)
+        return 1
+
+    // ADD A, C
+    case 0x81:
+        add_a_r8(self, mem, .C)
+        return 1
+
+    // ADD A, D
+    case 0x82:
+        add_a_r8(self, mem, .D)
+        return 1
+
+    // ADD A, E
+    case 0x83:
+        add_a_r8(self, mem, .E)
+        return 1
+
+    // ADD A, H
+    case 0x84:
+        add_a_r8(self, mem, .H)
+        return 1
+
+    // ADD A, L
+    case 0x85:
+        add_a_r8(self, mem, .L)
+        return 1
+
+    // ADD A, [HL]
+    case 0x86:
+        add_a_hl(self, mem)
+        return 2
+
+    // ADD A, A
+    case 0x87:
+        add_a_r8(self, mem, .A)
+        return 1
+
+
+    // ADC A, B
+    case 0x88:
+        adc_a_r8(self, mem, .B)
+        return 1
+
+    // ADC A, C
+    case 0x89:
+        adc_a_r8(self, mem, .C)
+        return 1
+
+    // ADC A, D
+    case 0x8A:
+        adc_a_r8(self, mem, .D)
+        return 1
+
+    // ADC A, E
+    case 0x8B:
+        adc_a_r8(self, mem, .E)
+        return 1
+
+    // ADC A, H
+    case 0x8C:
+        adc_a_r8(self, mem, .H)
+        return 1
+
+    // ADC A, L
+    case 0x8D:
+        adc_a_r8(self, mem, .L)
+        return 1
+
+    // ADC A, [HL]
+    case 0x8E:
+        adc_a_hl(self, mem)
+        return 2
+
+    // ADC A, A
+    case 0x8F:
+        adc_a_r8(self, mem, .A)
+        return 1
+
+    // SUB A, B
+    case 0x90:
+        sub_a_r8(self, mem, .B)
+        return 1
+
+    // SUB A, C
+    case 0x91:
+        sub_a_r8(self, mem, .C)
+        return 1
+
+    // SUB A, D
+    case 0x92:
+        sub_a_r8(self, mem, .D)
+        return 1
+
+    // SUB A, E
+    case 0x93:
+        sub_a_r8(self, mem, .E)
+        return 1
+
+    // SUB A, H
+    case 0x94:
+        sub_a_r8(self, mem, .H)
+        return 1
+
+    // SUB A, L
+    case 0x95:
+        sub_a_r8(self, mem, .L)
+        return 1
+
+    // SUB A, [HL]
+    case 0x96:
+        sub_a_hl(self, mem)
+        return 2
+
+    // SUB A, A
+    case 0x97:
+        sub_a_r8(self, mem, .A)
+        return 1
+
+    // SBC A, B
+    case 0x98:
+        sbc_a_r8(self, mem, .B)
+        return 1
+
+    // SBC A, C
+    case 0x99:
+        sbc_a_r8(self, mem, .C)
+        return 1
+
+    // SBC A, D
+    case 0x9a:
+        sbc_a_r8(self, mem, .D)
+        return 1
+
+    // SBC A, E
+    case 0x9b:
+        sbc_a_r8(self, mem, .E)
+        return 1
+
+    // SBC A, H
+    case 0x9c:
+        sbc_a_r8(self, mem, .H)
+        return 1
+
+    // SBC A, L
+    case 0x9d:
+        sbc_a_r8(self, mem, .L)
+        return 1
+
+    // SBC A, [HL]
+    case 0x9e:
+        sbc_a_hl(self, mem)
+        return 2
+
+    // SBC A, A
+    case 0x9f:
+        sbc_a_r8(self, mem, .A)
+        return 1
+
+    // AND A, B
+    case 0xA0:
+        and_a_r8(self, mem, .B)
+        return 1
+
+    // AND A, C
+    case 0xA1:
+        and_a_r8(self, mem, .C)
+        return 1
+
+    // AND A, D
+    case 0xA2:
+        and_a_r8(self, mem, .D)
+        return 1
+
+    // AND A, E
+    case 0xA3:
+        and_a_r8(self, mem, .E)
+        return 1
+
+    // AND A, H
+    case 0xA4:
+        and_a_r8(self, mem, .H)
+        return 1
+
+    // AND A, L
+    case 0xA5:
+        and_a_r8(self, mem, .L)
+        return 1
+
+    // AND A, [HL]
+    case 0xA6:
+        and_a_hl(self, mem)
+        return 1
+
+    // AND A, A
+    case 0xA7:
+        and_a_r8(self, mem, .A)
+        return 1
+
+    // XOR A, B
+    case 0xA8:
+        xor_a_r8(self, mem, .B)
+        return 1
+
+    // XOR A, C
+    case 0xA9:
+        xor_a_r8(self, mem, .C)
+        return 1
+
+    // XOR A, D
+    case 0xAA:
+        xor_a_r8(self, mem, .D)
+        return 1
+
+    // XOR A, E
+    case 0xAB:
+        xor_a_r8(self, mem, .E)
+        return 1
+
+    // XOR A, H
+    case 0xAC:
+        xor_a_r8(self, mem, .H)
+        return 1
+
+    // XOR A, L
+    case 0xAD:
+        xor_a_r8(self, mem, .L)
+        return 1
+
+    // XOR A, [HL]
+    case 0xAE:
+        xor_a_hl(self, mem)
+        return 1
+
+    // XOR A, A
+    case 0xAF:
+        xor_a_r8(self, mem, .A)
+        return 1
+
+    // OR A, B
+    case 0xB0:
+        or_a_r8(self, mem, .B)
+        return 1
+
+    // OR A, C
+    case 0xB1:
+        or_a_r8(self, mem, .C)
+        return 1
+
+    // OR A, D
+    case 0xB2:
+        or_a_r8(self, mem, .D)
+        return 1
+
+    // OR A, E
+    case 0xB3:
+        or_a_r8(self, mem, .E)
+        return 1
+
+    // OR A, H
+    case 0xB4:
+        or_a_r8(self, mem, .H)
+        return 1
+
+    // OR A, L
+    case 0xB5:
+        or_a_r8(self, mem, .L)
+        return 1
+
+    // OR A, [HL]
+    case 0xB6:
+        or_a_hl(self, mem)
+        return 2
+
+    // OR A, A
+    case 0xB7:
+        or_a_r8(self, mem, .A)
+        return 1
+
+    // CP A, B
+    case 0xB8:
+        cp_a_r8(self, mem, .B)
+        return 1
+
+    // CP A, C
+    case 0xB9:
+        cp_a_r8(self, mem, .C)
+        return 1
+
+    // CP A, D
+    case 0xBA:
+        cp_a_r8(self, mem, .D)
+        return 1
+
+    // CP A, E
+    case 0xBB:
+        cp_a_r8(self, mem, .E)
+        return 1
+
+    // CP A, H
+    case 0xBC:
+        cp_a_r8(self, mem, .H)
+        return 1
+
+    // CP A, L
+    case 0xBD:
+        cp_a_r8(self, mem, .L)
+        return 1
+
+    // CP A, [HL]
+    case 0xBE:
+        cp_a_hl(self, mem)
+        return 1
+
+    // CP A, A
+    case 0xBF:
+        cp_a_r8(self, mem, .A)
+        return 1
+
     case:
         fmt.panicf("Unknown Opcode: 0x{:02X} @ 0x{:04X}", opcode, self.regs.pc - 1)
     }
-
 }

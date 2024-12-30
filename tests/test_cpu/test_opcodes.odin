@@ -396,3 +396,195 @@ opcode_0x7e :: proc(t: ^testing.T) {test_opcode(t, "7e")}
 
 @(test)
 opcode_0x7f :: proc(t: ^testing.T) {test_opcode(t, "7f")}
+
+@(test)
+opcode_0x80 :: proc(t: ^testing.T) {test_opcode(t, "80")}
+
+@(test)
+opcode_0x81 :: proc(t: ^testing.T) {test_opcode(t, "81")}
+
+@(test)
+opcode_0x82 :: proc(t: ^testing.T) {test_opcode(t, "82")}
+
+@(test)
+opcode_0x83 :: proc(t: ^testing.T) {test_opcode(t, "83")}
+
+@(test)
+opcode_0x84 :: proc(t: ^testing.T) {test_opcode(t, "84")}
+
+@(test)
+opcode_0x85 :: proc(t: ^testing.T) {test_opcode(t, "85")}
+
+@(test)
+opcode_0x86 :: proc(t: ^testing.T) {test_opcode(t, "86")}
+
+@(test)
+opcode_0x87 :: proc(t: ^testing.T) {test_opcode(t, "87")}
+
+@(test)
+opcode_0x88 :: proc(t: ^testing.T) {test_opcode(t, "88")}
+
+@(test)
+opcode_0x89 :: proc(t: ^testing.T) {test_opcode(t, "89")}
+
+@(test)
+opcode_0x8a :: proc(t: ^testing.T) {test_opcode(t, "8a")}
+
+@(test)
+opcode_0x8b :: proc(t: ^testing.T) {test_opcode(t, "8b")}
+
+@(test)
+opcode_0x8c :: proc(t: ^testing.T) {test_opcode(t, "8c")}
+
+@(test)
+opcode_0x8d :: proc(t: ^testing.T) {test_opcode(t, "8d")}
+
+@(test)
+opcode_0x8e :: proc(t: ^testing.T) {test_opcode(t, "8e")}
+
+@(test)
+opcode_0x8f :: proc(t: ^testing.T) {test_opcode(t, "8f")}
+
+@(test)
+opcode_0x90 :: proc(t: ^testing.T) {test_opcode(t, "90")}
+
+@(test)
+opcode_0x91 :: proc(t: ^testing.T) {test_opcode(t, "91")}
+
+@(test)
+opcode_0x92 :: proc(t: ^testing.T) {test_opcode(t, "92")}
+
+@(test)
+opcode_0x93 :: proc(t: ^testing.T) {test_opcode(t, "93")}
+
+@(test)
+opcode_0x94 :: proc(t: ^testing.T) {test_opcode(t, "94")}
+
+@(test)
+opcode_0x95 :: proc(t: ^testing.T) {test_opcode(t, "95")}
+
+@(test)
+opcode_0x96 :: proc(t: ^testing.T) {test_opcode(t, "96")}
+
+@(test)
+opcode_0x97 :: proc(t: ^testing.T) {test_opcode(t, "97")}
+
+@(test)
+opcode_0x98 :: proc(t: ^testing.T) {test_opcode(t, "98")}
+
+@(test)
+opcode_0x99 :: proc(t: ^testing.T) {test_opcode(t, "99")}
+
+@(test)
+opcode_0x9a :: proc(t: ^testing.T) {test_opcode(t, "9a")}
+
+@(test)
+opcode_0x9b :: proc(t: ^testing.T) {test_opcode(t, "9b")}
+
+@(test)
+opcode_0x9c :: proc(t: ^testing.T) {test_opcode(t, "9c")}
+
+@(test)
+opcode_0x9d :: proc(t: ^testing.T) {test_opcode(t, "9d")}
+
+@(test)
+opcode_0x9e :: proc(t: ^testing.T) {test_opcode(t, "9e")}
+
+@(test)
+opcode_0x9f :: proc(t: ^testing.T) {test_opcode(t, "9f")}
+
+@(test)
+opcode_0xa0 :: proc(t: ^testing.T) {test_opcode(t, "a0")}
+
+@(test)
+opcode_0xa1 :: proc(t: ^testing.T) {test_opcode(t, "a1")}
+
+@(test)
+opcode_0xa2 :: proc(t: ^testing.T) {test_opcode(t, "a2")}
+
+@(test)
+opcode_0xa3 :: proc(t: ^testing.T) {test_opcode(t, "a3")}
+
+@(test)
+opcode_0xa4 :: proc(t: ^testing.T) {test_opcode(t, "a4")}
+
+@(test)
+opcode_0xa5 :: proc(t: ^testing.T) {test_opcode(t, "a5")}
+
+@(test)
+opcode_0xa6 :: proc(t: ^testing.T) {test_opcode(t, "a6")}
+
+@(test)
+opcode_0xa7 :: proc(t: ^testing.T) {test_opcode(t, "a7")}
+
+@(test)
+opcode_0xa8 :: proc(t: ^testing.T) {test_opcode(t, "a8")}
+
+@(test)
+opcode_0xa9 :: proc(t: ^testing.T) {test_opcode(t, "a9")}
+
+@(test)
+opcode_0xaa :: proc(t: ^testing.T) {test_opcode(t, "aa")}
+
+@(test)
+opcode_0xab :: proc(t: ^testing.T) {test_opcode(t, "ab")}
+
+@(test)
+opcode_0xac :: proc(t: ^testing.T) {test_opcode(t, "ac")}
+
+@(test)
+opcode_0xad :: proc(t: ^testing.T) {test_opcode(t, "ad")}
+
+@(test)
+opcode_0xae :: proc(t: ^testing.T) {test_opcode(t, "ae")}
+
+@(test)
+opcode_0xaf :: proc(t: ^testing.T) {test_opcode(t, "af")}
+
+@(test)
+opcode_0xb0 :: proc(t: ^testing.T) {test_opcode(t, "b0")}
+
+@(test)
+opcode_0xb1 :: proc(t: ^testing.T) {test_opcode(t, "b1")}
+
+@(test)
+opcode_0xb2 :: proc(t: ^testing.T) {test_opcode(t, "b2")}
+
+@(test)
+opcode_0xb3 :: proc(t: ^testing.T) {test_opcode(t, "b3")}
+
+@(test)
+opcode_0xb4 :: proc(t: ^testing.T) {test_opcode(t, "b4")}
+
+@(test)
+opcode_0xb5 :: proc(t: ^testing.T) {test_opcode(t, "b5")}
+
+@(test)
+opcode_0xb6 :: proc(t: ^testing.T) {test_opcode(t, "b6")}
+
+@(test)
+opcode_0xb7 :: proc(t: ^testing.T) {test_opcode(t, "b7")}
+
+@(test)
+opcode_0xb8 :: proc(t: ^testing.T) {test_opcode(t, "b8")}
+
+@(test)
+opcode_0xb9 :: proc(t: ^testing.T) {test_opcode(t, "b9")}
+
+@(test)
+opcode_0xba :: proc(t: ^testing.T) {test_opcode(t, "ba")}
+
+@(test)
+opcode_0xbb :: proc(t: ^testing.T) {test_opcode(t, "bb")}
+
+@(test)
+opcode_0xbc :: proc(t: ^testing.T) {test_opcode(t, "bc")}
+
+@(test)
+opcode_0xbd :: proc(t: ^testing.T) {test_opcode(t, "bd")}
+
+@(test)
+opcode_0xbe :: proc(t: ^testing.T) {test_opcode(t, "be")}
+
+@(test)
+opcode_0xbf :: proc(t: ^testing.T) {test_opcode(t, "bf")}
