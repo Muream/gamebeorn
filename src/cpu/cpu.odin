@@ -87,29 +87,12 @@ step :: proc(self: ^CPU, mem: ^memory.Memory) -> uint {
 
     // ADD HL, BC 
     case 0x09:
-        // Add the value in r16 to HL.
-        bc := get_bc(&self.regs)
-        hl := get_hl(&self.regs)
-
-        res, carry := bits.overflowing_add(bc, hl)
-
-        half_carry := (hl & 0xFFF) > (res & 0xFFF)
-
-        set_hl(&self.regs, cast(u16)(hl + bc))
-
-        // - 0 H C
-        set_sub_flag(&self.regs, false)
-        set_half_carry_flag(&self.regs, half_carry)
-        set_carry_flag(&self.regs, carry)
-
+        add_r16_r16(self, mem, .HL, .BC)
         return 2
 
     // LD A, [BC]
     case 0x0A:
-        // Load value in register A from the byte pointed to by register r16.
-        addr := get_bc(&self.regs)
-        val := memory.read(mem, addr)
-        self.a = val
+        ld_a_r16(self, mem, .BC)
         return 2
 
     // DEC BC
@@ -197,110 +180,521 @@ step :: proc(self: ^CPU, mem: ^memory.Memory) -> uint {
 
     // JR e8 
     case 0x18:
-        //TODO: There might be a better way to do the addition than doing all this casting
-        addr := transmute(i8)next_byte(self, mem)
-        self.pc = cast(u16)(cast(i32)self.pc + cast(i32)addr)
-
+        jr_n16(self, mem)
         return 3
 
-    // ADD HL, DE 
+    // ADD HL, DE
     case 0x19:
         add_r16_r16(self, mem, .HL, .DE)
         return 2
 
-    // LD A, [DE] 
+    // LD A, [DE]
     case 0x1A:
         ld_a_r16(self, mem, .DE)
         return 2
 
-    // DEC DE 
+    // DEC DE
     case 0x1B:
         dec_r16(self, mem, .DE)
         return 2
 
-    // INC E 
+    // INC E
     case 0x1C:
         inc_r8(self, mem, .E)
         return 1
 
-    // DEC E 
+    // DEC E
     case 0x1D:
         dec_r8(self, mem, .E)
         return 1
 
-    // LD E, n8 
+    // LD E, n8
     case 0x1E:
-        val := next_byte(self, mem)
-        self.e = val
+        ld_r8_n8(self, mem, .E)
         return 2
 
     // TODO:
     // // RRA
     // case 0x1F:
 
+    // TODO:
     // // JR NZ, e8 
     // case 0x20:
 
+    // LD HL, n16
+    case 0x21:
+        ld_r16_n16(self, mem, .HL)
+        return 3
 
-    // //JP a16
-    // case 0xC3:
-    //     log.debug("JP a16 3  16 ")
-    //     addr := next_word(self, mem)
-    //     self.regs.pc = addr
-    //     return 4
+    // LD [HL+], A
+    case 0x22:
+        ld_hli_a(self, mem)
+        return 2
 
-    // // DI
-    // case 0xF3:
-    //     self.ime = false
+    // INC HL
+    case 0x23:
+        inc_r16(self, mem, .HL)
+        return 2
+
+    // INC H
+    case 0x24:
+        inc_r8(self, mem, .H)
+        return 1
+
+    // DEC H
+    case 0x25:
+        dec_r8(self, mem, .H)
+        return 1
+
+    // LD H, n8
+    case 0x26:
+        ld_r8_n8(self, mem, .H)
+        return 1
+
+    // TODO:
+    // // DAA
+    // case 0x27:
+    //     daa()
     //     return 1
 
-    // // // JR NC, e8 
-    // // case 0x30:
-    // //     offset_addr := transmute(i8)next_byte(self, mem) // FIXME: I this correct?
-    // //     addr := cast(u16)(cast(i16)self.regs.pc + cast(i16)offset_addr) // FIXME: I this correct?
-    // //     self.regs.pc = addr
-    // //     return 3
+    // // JR Z, e8 
+    // case 0x28:
 
-    // //LD SP, n16
-    // case 0x31:
-    //     val := next_word(self, mem)
-    //     self.regs.sp = val
-    //     return 3
+    // ADD HL, HL
+    case 0x29:
+        add_r16_r16(self, mem, .HL, .HL)
+        return 2
 
-    // // LD A, n8
-    // case 0x3A:
-    //     val := next_byte(self, mem)
-    //     self.regs.a = val
-    //     return 4
+    // LD A, [HL+]
+    case 0x2A:
+        ld_a_hli(self, mem)
+        return 2
 
-    // // LD [a16], A
-    // case 0xEA:
-    //     val := self.regs.a
-    //     addr := next_word(self, mem)
-    //     memory.write(mem, addr, val)
-    //     return 4
+    // DEC HL
+    case 0x2B:
+        dec_r16(self, mem, .HL)
+        return 2
 
-    // // LD A, n8 
-    // case 0x3E:
-    //     val := next_byte(self, mem)
-    //     self.regs.a = val
-    //     return 4
+    // INC L
+    case 0x2C:
+        inc_r8(self, mem, .L)
+        return 1
 
-    // // LDH [a8], A 
-    // case 0xE0:
-    //     val := self.regs.a
-    //     addr := 0xFF00 + cast(u16)next_byte(self, mem) // FIXME: Is this how the byte should be added?
-    //     memory.write(mem, addr, val)
+    // DEC L
+    case 0x2D:
+        dec_r8(self, mem, .L)
+        return 1
 
-    //     return 4
+    // LD L, n8
+    case 0x2E:
+        ld_r8_n8(self, mem, .L)
+        return 2
+
+    // TODO:
+    // CPL
+    case 0x2F:
+        return 1
+
+    // // TODO:
+    // // JR NC, e8
+    // case 0x30:
+    //     return 1
+
+    // LD SP, n16
+    case 0x31:
+        ld_r16_n16(self, mem, .SP)
+        return 4
+
+    // LD [HL-], A
+    case 0x32:
+        ld_hld_a(self, mem)
+        return 4
+
+    // INC SP
+    case 0x33:
+        inc_r16(self, mem, .SP)
+        return 2
+
+    //  INC [HL]
+    case 0x34:
+        inc_HL(self, mem)
+        return 4
+
+    //  DEC [HL]
+    case 0x35:
+        dec_HL(self, mem)
+        return 4
+
+    // LD [HL], n8
+    case 0x36:
+        ld_hl_n8(self, mem)
+        return 4
+
+    // SCF
+    case 0x37:
+        return 1
+
+    // JR C, e8
+    case 0x38:
+        return 1
+
+    // ADD HL, SP
+    case 0x39:
+        add_r16_r16(self, mem, .HL, .SP)
+        return 2
+
+    // LD A, [HL-]
+    case 0x3A:
+        ld_a_hld(self, mem)
+        return 2
+
+    // DEC SP
+    case 0x3B:
+        dec_r16(self, mem, .SP)
+        return 2
+
+    // INC A
+    case 0x3C:
+        inc_r8(self, mem, .A)
+        return 1
+
+    // DEC A
+    case 0x3D:
+        dec_r8(self, mem, .A)
+        return 1
+
+    // LD A, n8
+    case 0x3E:
+        ld_r8_n8(self, mem, .A)
+        return 2
+
+    // CCF
+    case 0x3F:
+        ccf(self, mem)
+        return 1
+
+    // LD B, B
+    case 0x40:
+        ld_r8_r8(self, mem, .B, .B)
+        return 1
+
+    // LD B, C
+    case 0x41:
+        ld_r8_r8(self, mem, .B, .C)
+        return 1
+
+    // LD B, D
+    case 0x42:
+        ld_r8_r8(self, mem, .B, .D)
+        return 1
+
+    // LD B, E
+    case 0x43:
+        ld_r8_r8(self, mem, .B, .E)
+        return 1
+
+    // LD B, H
+    case 0x44:
+        ld_r8_r8(self, mem, .B, .H)
+        return 1
+
+    // LD B, L
+    case 0x45:
+        ld_r8_r8(self, mem, .B, .L)
+        return 1
+
+    // LD B, [HL]
+    case 0x46:
+        ld_r8_hl(self, mem, .B)
+        return 2
+
+    // LD B, A
+    case 0x47:
+        ld_r8_r8(self, mem, .B, .A)
+        return 1
+
+    // LD C, B
+    case 0x48:
+        ld_r8_r8(self, mem, .C, .B)
+        return 1
+
+    // LD C, C
+    case 0x49:
+        ld_r8_r8(self, mem, .C, .C)
+        return 1
+
+    // LD C, D
+    case 0x4A:
+        ld_r8_r8(self, mem, .C, .D)
+        return 1
+
+    // LD C, E
+    case 0x4B:
+        ld_r8_r8(self, mem, .C, .E)
+        return 1
+
+    // LD C, H
+    case 0x4C:
+        ld_r8_r8(self, mem, .C, .H)
+        return 1
+
+    // LD C, L
+    case 0x4D:
+        ld_r8_r8(self, mem, .C, .L)
+        return 1
+
+    // LD C, [HL]
+    case 0x4E:
+        ld_r8_hl(self, mem, .C)
+        return 2
+
+    // LD C, A
+    case 0x4F:
+        ld_r8_r8(self, mem, .C, .A)
+        return 1
+
+    // LD D, B
+    case 0x50:
+        ld_r8_r8(self, mem, .D, .B)
+        return 1
+
+    // LD D, C
+    case 0x51:
+        ld_r8_r8(self, mem, .D, .C)
+        return 1
+
+    // LD D, D
+    case 0x52:
+        ld_r8_r8(self, mem, .D, .D)
+        return 1
+
+    // LD D, E
+    case 0x53:
+        ld_r8_r8(self, mem, .D, .E)
+        return 1
+
+    // LD D, H
+    case 0x54:
+        ld_r8_r8(self, mem, .D, .H)
+        return 1
+
+    // LD D, L
+    case 0x55:
+        ld_r8_r8(self, mem, .D, .L)
+        return 1
+
+    // LD D, [HL]
+    case 0x56:
+        ld_r8_hl(self, mem, .D)
+        return 2
+
+    // LD D, A
+    case 0x57:
+        ld_r8_r8(self, mem, .D, .A)
+        return 1
+
+    // LD E, B
+    case 0x58:
+        ld_r8_r8(self, mem, .E, .B)
+        return 1
+
+    // LD E, C
+    case 0x59:
+        ld_r8_r8(self, mem, .E, .C)
+        return 1
+
+    // LD E, D
+    case 0x5A:
+        ld_r8_r8(self, mem, .E, .D)
+        return 1
+
+    // LD E, E
+    case 0x5B:
+        ld_r8_r8(self, mem, .E, .E)
+        return 1
+
+    // LD E, H
+    case 0x5C:
+        ld_r8_r8(self, mem, .E, .H)
+        return 1
+
+    // LD E, L
+    case 0x5D:
+        ld_r8_r8(self, mem, .E, .L)
+        return 1
+
+    // LD E, [HL]
+    case 0x5E:
+        ld_r8_hl(self, mem, .E)
+        return 2
+
+    // LD E, A
+    case 0x5F:
+        ld_r8_r8(self, mem, .E, .A)
+        return 1
+
+    // LD H, B
+    case 0x60:
+        ld_r8_r8(self, mem, .H, .B)
+        return 1
+
+    // LD H, C
+    case 0x61:
+        ld_r8_r8(self, mem, .H, .C)
+        return 1
+
+    // LD H, D
+    case 0x62:
+        ld_r8_r8(self, mem, .H, .D)
+        return 1
+
+    // LD H, E
+    case 0x63:
+        ld_r8_r8(self, mem, .H, .E)
+        return 1
+
+    // LD H, H
+    case 0x64:
+        ld_r8_r8(self, mem, .H, .H)
+        return 1
+
+    // LD H, L
+    case 0x65:
+        ld_r8_r8(self, mem, .H, .L)
+        return 1
+
+    // LD H, [HL]
+    case 0x66:
+        ld_r8_hl(self, mem, .H)
+        return 2
+
+    // LD H, A
+    case 0x67:
+        ld_r8_r8(self, mem, .H, .A)
+        return 1
+
+    // LD L, B
+    case 0x68:
+        ld_r8_r8(self, mem, .L, .B)
+        return 1
+
+    // LD L, C
+    case 0x69:
+        ld_r8_r8(self, mem, .L, .C)
+        return 1
+
+    // LD L, D
+    case 0x6A:
+        ld_r8_r8(self, mem, .L, .D)
+        return 1
+
+    // LD L, E
+    case 0x6B:
+        ld_r8_r8(self, mem, .L, .E)
+        return 1
+
+    // LD L, H
+    case 0x6C:
+        ld_r8_r8(self, mem, .L, .H)
+        return 1
+
+    // LD L, L
+    case 0x6D:
+        ld_r8_r8(self, mem, .L, .L)
+        return 1
+
+    // LD L, [HL]
+    case 0x6E:
+        ld_r8_hl(self, mem, .L)
+        return 2
+
+    // LD L, A
+    case 0x6F:
+        ld_r8_r8(self, mem, .L, .A)
+        return 1
+
+    // LD [HL], B
+    case 0x70:
+        ld_hl_r8(self, mem, .B)
+        return 1
+
+    // LD [HL], C
+    case 0x71:
+        ld_hl_r8(self, mem, .C)
+        return 1
+
+    // LD [HL], D
+    case 0x72:
+        ld_hl_r8(self, mem, .D)
+        return 1
+
+    // LD [HL], E
+    case 0x73:
+        ld_hl_r8(self, mem, .E)
+        return 1
+
+    // LD [HL], H
+    case 0x74:
+        ld_hl_r8(self, mem, .H)
+        return 1
+
+    // LD [HL], L
+    case 0x75:
+        ld_hl_r8(self, mem, .L)
+        return 1
+
+    // TODO:
+    // HALT
+    case 0x76:
+        return 1
+
+    // LD [HL], A
+    case 0x77:
+        ld_hl_r8(self, mem, .A)
+        return 1
+
+    // LD A, B
+    case 0x78:
+        ld_r8_r8(self, mem, .A, .B)
+        return 1
+
+    // LD A, C
+    case 0x79:
+        ld_r8_r8(self, mem, .A, .C)
+        return 1
+
+    // LD A, D
+    case 0x7A:
+        ld_r8_r8(self, mem, .A, .D)
+        return 1
+
+    // LD A, E
+    case 0x7B:
+        ld_r8_r8(self, mem, .A, .E)
+        return 1
+
+    // LD A, H
+    case 0x7C:
+        ld_r8_r8(self, mem, .A, .H)
+        return 1
+
+    // LD A, L
+    case 0x7D:
+        ld_r8_r8(self, mem, .A, .L)
+        return 1
+
+    // LD A, [HL]
+    case 0x7E:
+        ld_r8_hl(self, mem, .A)
+        return 2
+
+    // LD A, A
+    case 0x7F:
+        ld_r8_r8(self, mem, .A, .A)
+        return 1
+
     case:
         fmt.panicf("Unknown Opcode: 0x{:02X} @ 0x{:04X}", opcode, self.regs.pc - 1)
     }
 
 }
-// {
-//     "name":"05 0000",
-//     "initial":  {"a":149, "b":179, "c":99, "d":60, "e":134, "f":176, "h":129, "l":116, "pc":15508, "sp":56720, "ime":0, "ie":1, "ram":[[15508,5]]},
-//     "final":    {"a":149, "b":178, "c":99, "d":60, "e":134, "f":80,  "h":129, "l":116, "pc":15509, "sp":56720, "ime":0, "ram":[[15508,5]]},
-//     "cycles":[[15508,5,"r-m"]]
-// }

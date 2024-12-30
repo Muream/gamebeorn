@@ -18,8 +18,6 @@ Test :: struct {
 }
 
 
-// {"name":"00 0000","initial":{"pc":19935,"sp":59438,"a":110,"b":185,"c":144,"d":208,"e":190,"f":240,"h":131,"l":147,"ime":1,"ie":1,"ram":[[19935,0]]},"final":{"a":110,"b":185,"c":144,"d":208,"e":190,"f":240,"h":131,"l":147,"pc":19936,"sp":59438,"ime":1,"ram":[[19935,0]]},"cycles":[[19935,0,"r-m"]]}
-
 Cycle :: union {
     u16,
     u8,
@@ -45,14 +43,12 @@ State :: struct {
 get_tests :: proc(path: string) -> []Test {
     data, ok := os.read_entire_file_from_filename(path)
     if !ok {
-        panic("Failed to load the file!")
+        log.error("Failed to load the file!")
     }
     defer delete(data) // Free the memory at the end
 
-
     tests: []Test
     err := json.unmarshal(data, &tests, allocator = context.temp_allocator)
-
     if err != nil {
         log.error(err)
     }

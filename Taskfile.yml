@@ -18,6 +18,6 @@ tasks:
 
   test:
     cmds:
-      - cmd: odin test tests/ -out=build/beorn-test.exe -o:none -all-packages
+      - cmd: odin test tests/ -out=build/beorn-test.exe -all-packages -define:ODIN_TEST_PROGRESS_WIDTH=0
         ignore_error: true
     silent: true

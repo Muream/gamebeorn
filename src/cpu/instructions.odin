@@ -1,5 +1,7 @@
 package cpu
 
+import "core:fmt"
+import "core:log"
 import "core:math/bits"
 
 import "../memory"
@@ -24,6 +26,8 @@ Register :: enum {
 get_r8 :: proc(self: ^CPU, register: Register) -> ^u8 {
     reg: ^u8
     #partial switch register {
+    case .A:
+        reg = &self.a
     case .B:
         reg = &self.b
     case .C:
@@ -38,6 +42,8 @@ get_r8 :: proc(self: ^CPU, register: Register) -> ^u8 {
         reg = &self.h
     case .L:
         reg = &self.l
+    case:
+        fmt.panicf("Invalid r8 Register %v", register)
     }
     return reg
 }
@@ -69,6 +75,36 @@ dec_r8 :: proc(self: ^CPU, mem: ^memory.Memory, register: Register) {
     reg^ = res
 
     set_zero_flag(&self.regs, reg^ == 0)
+    set_sub_flag(&self.regs, true)
+    set_half_carry_flag(&self.regs, half_carry)
+}
+
+inc_HL :: proc(self: ^CPU, mem: ^memory.Memory) {
+    addr := get_hl(&self.regs)
+
+    value := memory.read(mem, addr)
+    res, carry := bits.overflowing_add(value, 1)
+
+    half_carry := ((value & 0xf) + (1 & 0xf)) & 0x10 == 0x10
+
+    memory.write(mem, addr, res)
+
+    set_zero_flag(&self.regs, res == 0)
+    set_sub_flag(&self.regs, false)
+    set_half_carry_flag(&self.regs, half_carry)
+}
+
+dec_HL :: proc(self: ^CPU, mem: ^memory.Memory) {
+    addr := get_hl(&self.regs)
+
+    value := memory.read(mem, addr)
+    res, carry := bits.overflowing_sub(value, 1)
+
+    half_carry := ((value & 0xf) - (1 & 0xf)) & 0x10 == 0x10
+
+    memory.write(mem, addr, res)
+
+    set_zero_flag(&self.regs, res == 0)
     set_sub_flag(&self.regs, true)
     set_half_carry_flag(&self.regs, half_carry)
 }
@@ -119,6 +155,8 @@ add_r16_r16 :: proc(self: ^CPU, mem: ^memory.Memory, r1: Register, r2: Register)
         v1 = get_de(&self.regs)
     case .HL:
         v1 = get_hl(&self.regs)
+    case .SP:
+        v1 = self.sp
     }
 
     v2: u16
@@ -129,6 +167,8 @@ add_r16_r16 :: proc(self: ^CPU, mem: ^memory.Memory, r1: Register, r2: Register)
         v2 = get_de(&self.regs)
     case .HL:
         v2 = get_hl(&self.regs)
+    case .SP:
+        v2 = self.sp
     }
 
     res, carry := bits.overflowing_add(v1, v2)
@@ -142,6 +182,8 @@ add_r16_r16 :: proc(self: ^CPU, mem: ^memory.Memory, r1: Register, r2: Register)
         set_de(&self.regs, res)
     case .HL:
         set_hl(&self.regs, res)
+    case .SP:
+        self.sp = res
     }
 
     // - 0 H C
@@ -184,11 +226,18 @@ rrca :: proc(self: ^CPU, mem: ^memory.Memory) {
 
 }
 
+ccf :: proc(self: ^CPU, mem: ^memory.Memory) {}
+
 
 //// ---- Load Instructions -----------------------------------------------------------
 
 // Load value n8 into register r8.
-ld_r8_r8 :: proc() {}
+ld_r8_r8 :: proc(self: ^CPU, mem: ^memory.Memory, r1: Register, r2: Register) {
+    reg1 := get_r8(self, r1)
+    reg2 := get_r8(self, r2)
+
+    reg1^ = reg2^
+}
 
 // Load value n8 into register r8.
 ld_r8_n8 :: proc(self: ^CPU, mem: ^memory.Memory, r1: Register) {
@@ -212,13 +261,30 @@ ld_r16_n16 :: proc(self: ^CPU, mem: ^memory.Memory, r1: Register) {
         self.l = next_byte(self, mem)
         self.h = next_byte(self, mem)
     case .SP:
-        panic("Not Implemented")
+        self.sp = next_word(self, mem)
     }
 }
 
-ld_hl_r8 :: proc() {}
-ld_hl_n8 :: proc() {}
-ld_r8_hl :: proc() {}
+ld_hl_r8 :: proc(self: ^CPU, mem: ^memory.Memory, r1: Register) {
+    reg := get_r8(self, r1)
+    addr := get_hl(&self.regs)
+    memory.write(mem, addr, reg^)
+}
+
+ld_hl_n8 :: proc(self: ^CPU, mem: ^memory.Memory) {
+    value := next_byte(self, mem)
+    addr := get_hl(&self.regs)
+    memory.write(mem, addr, value)
+}
+
+ld_r8_hl :: proc(self: ^CPU, mem: ^memory.Memory, r1: Register) {
+    reg := get_r8(self, r1)
+
+    addr := get_hl(&self.regs)
+    value := memory.read(mem, addr)
+
+    reg^ = value
+}
 
 // Store value in register A into the byte pointed to by register r16.
 ld_r16_a :: proc(self: ^CPU, mem: ^memory.Memory, r1: Register) {
@@ -239,8 +305,16 @@ ldh_c_a :: proc() {}
 // Load value in register A from the byte pointed to by register r16.
 ld_a_r16 :: proc(self: ^CPU, mem: ^memory.Memory, r1: Register) {
     #partial switch r1 {
+    case .BC:
+        addr := get_bc(&self.regs)
+        val := memory.read(mem, addr)
+        self.a = val
     case .DE:
         addr := get_de(&self.regs)
+        val := memory.read(mem, addr)
+        self.a = val
+    case .HL:
+        addr := get_hl(&self.regs)
         val := memory.read(mem, addr)
         self.a = val
     }
@@ -249,10 +323,27 @@ ld_a_r16 :: proc(self: ^CPU, mem: ^memory.Memory, r1: Register) {
 ld_a_n16 :: proc() {}
 ldh_a_n16 :: proc() {}
 ldh_a_c :: proc() {}
-ld_hli_a :: proc() {}
-ld_hld_a :: proc() {}
-ld_a_hli :: proc() {}
-ld_a_hld :: proc() {}
+
+// Store value in register A into the byte pointed by HL and increment HL afterwards.
+ld_hli_a :: proc(self: ^CPU, mem: ^memory.Memory) {
+    ld_r16_a(self, mem, .HL)
+    inc_r16(self, mem, .HL)
+}
+
+ld_hld_a :: proc(self: ^CPU, mem: ^memory.Memory) {
+    ld_r16_a(self, mem, .HL)
+    dec_r16(self, mem, .HL)
+}
+
+ld_a_hli :: proc(self: ^CPU, mem: ^memory.Memory) {
+    ld_a_r16(self, mem, .HL)
+    inc_r16(self, mem, .HL)
+}
+
+ld_a_hld :: proc(self: ^CPU, mem: ^memory.Memory) {
+    ld_a_r16(self, mem, .HL)
+    dec_r16(self, mem, .HL)
+}
 
 ld_n16_sp :: proc(self: ^CPU, mem: ^memory.Memory) {
     // Store SP & $FF at address n16 and SP >> 8 at address n16 + 1.
@@ -263,6 +354,15 @@ ld_n16_sp :: proc(self: ^CPU, mem: ^memory.Memory) {
     memory.write(mem, addr + 1, b)
 }
 //// ---- Jumps and Subroutines -------------------------------------------------------
+
+jr_n16 :: proc(self: ^CPU, mem: ^memory.Memory) {
+    //TODO: There might be a better way to do the addition than doing all this casting
+    addr := transmute(i8)next_byte(self, mem)
+    self.pc = cast(u16)(cast(i32)self.pc + cast(i32)addr)
+}
+
+jr_cc_n16 :: proc() {}
+
 //// ---- Stack Operations Instructions -----------------------------------------------
 //// ---- Miscellaneous Instructions --------------------------------------------------
 
