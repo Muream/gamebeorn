@@ -65,6 +65,18 @@ set_carry_flag :: proc(self: ^Registers, value: bool) {
     }
 }
 
+get_zero_flag :: proc(self: ^Registers) -> bool {
+    return self.f & 0b1000_0000 == 0b1000_0000
+}
+
+get_sub_flag :: proc(self: ^Registers) -> bool {
+    return self.f & 0b0100_0000 == 0b0100_0000
+}
+
+get_half_carry_flag :: proc(self: ^Registers) -> bool {
+    return self.f & 0b0010_0000 == 0b0010_0000
+}
+
 get_carry_flag :: proc(self: ^Registers) -> bool {
     return self.f & 0b0001_0000 == 0b0001_0000
 }

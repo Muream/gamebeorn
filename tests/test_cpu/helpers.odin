@@ -26,7 +26,7 @@ Cycle :: union {
 
 State :: struct {
     a:   u8,
-    f:   u8,
+    f:   u8 `fmt:"08b"`,
     b:   u8,
     c:   u8,
     d:   u8,
@@ -76,6 +76,7 @@ configure_state :: proc(emu: ^emulator.Emulator, state: State) {
     emu.gb.cpu.l = state.l
     emu.gb.cpu.sp = state.sp
     emu.gb.cpu.pc = state.pc
+    emu.gb.cpu.ime = state.ime == 1 ? .Enabled : .Disabled
 
     for mem_data in state.ram {
         addr := cast(u16)mem_data[0]
@@ -102,6 +103,9 @@ verify_state :: proc(t: ^testing.T, emu: ^emulator.Emulator, state: State) {
     testing.expect_value(t, emu.gb.cpu.l, state.l)
     testing.expect_value(t, emu.gb.cpu.sp, state.sp)
     testing.expect_value(t, emu.gb.cpu.pc, state.pc)
+
+    ime: u8 = emu.gb.cpu.ime == .Enabled ? 1 : 0
+    testing.expect_value(t, ime, state.ime)
 }
 
 test_opcode :: proc(t: ^testing.T, opcode: string) {

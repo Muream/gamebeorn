@@ -7,12 +7,18 @@ import "../memory"
 
 CPU :: struct {
     using regs: Registers,
-    ime:        bool,
+    ime:        ImeState,
+}
+
+ImeState :: enum {
+    Disabled,
+    Enabled,
+    ToEnable,
 }
 
 init :: proc() -> CPU {
     log.debug("Init CPU")
-    cpu := CPU{{pc = 0x0100}, false}
+    cpu := CPU{{pc = 0x0100}, .Disabled}
     return cpu
 }
 
@@ -36,6 +42,10 @@ step :: proc(self: ^CPU, mem: ^memory.Memory) -> uint {
     opcode := next_byte(self, mem)
 
     log.debugf("PC: 0x%08X, OP: 0x%02X", op_addr, opcode)
+
+    if self.ime == .ToEnable {
+        self.ime = .Enabled
+    }
 
     switch opcode {
 
@@ -215,9 +225,10 @@ step :: proc(self: ^CPU, mem: ^memory.Memory) -> uint {
     // // RRA
     // case 0x1F:
 
-    // TODO:
-    // // JR NZ, e8
-    // case 0x20:
+    // JR NZ, e8
+    case 0x20:
+        taken := jr_cc_n16(self, mem, .NZ)
+        return 3 if taken else 2
 
     // LD HL, n16
     case 0x21:
@@ -255,9 +266,10 @@ step :: proc(self: ^CPU, mem: ^memory.Memory) -> uint {
     //     daa()
     //     return 1
 
-    // TODO:
-    // // JR Z, e8
-    // case 0x28:
+    // JR Z, e8
+    case 0x28:
+        taken := jr_cc_n16(self, mem, .Z)
+        return 3 if taken else 2
 
     // ADD HL, HL
     case 0x29:
@@ -294,10 +306,10 @@ step :: proc(self: ^CPU, mem: ^memory.Memory) -> uint {
     // case 0x2F:
     //     return 1
 
-    // // TODO:
-    // // JR NC, e8
-    // case 0x30:
-    //     return 1
+    // JR NC, e8
+    case 0x30:
+        jr_cc_n16(self, mem, .NC)
+        return 1
 
     // LD SP, n16
     case 0x31:
@@ -1012,30 +1024,30 @@ step :: proc(self: ^CPU, mem: ^memory.Memory) -> uint {
         cp_a_r8(self, mem, .A)
         return 1
 
-    // TODO:
-    // // RET NZ
-    // case 0xC0:
-    //     return 5
+    // RET NZ
+    case 0xC0:
+        ret_cc(self, mem, .NZ)
+        return 5
 
     // POP BC
     case 0xC1:
         pop_r16(self, mem, .BC)
         return 3
 
-    // TODO:
-    // // JP
-    // case 0xC2:
-    //     return 4
+    // JP NZ, a16
+    case 0xC2:
+        jp_cc_n16(self, mem, .NZ)
+        return 4
 
-    // TODO:
-    // // JP
-    // case 0xC3:
-    //     return 4
+    // JP a16
+    case 0xC3:
+        jp_n16(self, mem)
+        return 4
 
-    // TODO:
-    // // CALL
-    // case 0xC4:
-    //     return 6
+    // CALL NZ, a16
+    case 0xC4:
+        call_cc_n16(self, mem, .NZ)
+        return 6
 
     // PUSH BC
     case 0xC5:
@@ -1047,74 +1059,74 @@ step :: proc(self: ^CPU, mem: ^memory.Memory) -> uint {
         add_a_n8(self, mem)
         return 2
 
-    // TODO:
-    // // RST $00 
-    // case 0xC7:
-    //     return 4
+    // RST $00 
+    case 0xC7:
+        rst_vec(self, mem, 0x00)
+        return 4
 
-    // TODO:
-    // // RET Z
-    // case 0xC8:
-    //     return 5
+    // RET Z
+    case 0xC8:
+        ret_cc(self, mem, .Z)
+        return 5
 
-    // TODO:
-    // // RET
-    // case 0xC9:
-    //     return 4
+    // RET
+    case 0xC9:
+        ret(self, mem)
+        return 4
 
-    // TODO:
-    // // JP Z,a16
-    // case 0xCA:
-    //     return 4
+    // JP Z,a16
+    case 0xCA:
+        jp_cc_n16(self, mem, .Z)
+        return 4
 
     // TODO:
     // // PREFIX
     // case 0xCB:
     //     return 1
 
-    // TODO:
-    // // CALL Z,a16
-    // case 0xCC:
-    //     return 6
+    // CALL Z,a16
+    case 0xCC:
+        call_cc_n16(self, mem, .Z)
+        return 6
 
-    // TODO:
-    // // CALL a16
-    // case 0xCD:
-    //     return 6
+    // CALL a16
+    case 0xCD:
+        call_n16(self, mem)
+        return 6
 
     // ADC A,n8
     case 0xCE:
         adc_a_n8(self, mem)
         return 2
 
-    // TODO:
-    // // RST $08
-    // case 0xCF:
-    //     return 4
+    // RST $08
+    case 0xCF:
+        rst_vec(self, mem, 0x08)
+        return 4
 
-    // TODO:
-    // // RET NC
-    // case 0xD0:
-    //     return 5
+    // RET NC
+    case 0xD0:
+        ret_cc(self, mem, .NC)
+        return 5
 
     // POP DE
     case 0xD1:
         pop_r16(self, mem, .DE)
         return 3
 
-    // TODO:
-    // // JP NC, a16
-    // case 0xD2:
-    //     return 4
+    // JP NC, a16
+    case 0xD2:
+        jp_cc_n16(self, mem, .NC)
+        return 4
 
     // ILLEGAL_D3
     case 0xD3:
         panic("Illegal Instruction: 0xD3")
 
-    // TODO:
-    // // CALL NC, a16
-    // case 0xD4:
-    //     return 6
+    // CALL NC, a16
+    case 0xD4:
+        call_cc_n16(self, mem, .NC)
+        return 6
 
     // PUSH DE 
     case 0xD5:
@@ -1126,34 +1138,34 @@ step :: proc(self: ^CPU, mem: ^memory.Memory) -> uint {
         sub_a_n8(self, mem)
         return 2
 
-    // TODO:
-    // // RST
-    // case 0xD7:
-    //     return 4
+    // RST $10
+    case 0xD7:
+        rst_vec(self, mem, 0x10)
+        return 4
 
-    // TODO:
-    // // RET
-    // case 0xD8:
-    //     return 5
+    // RET C 
+    case 0xD8:
+        ret_cc(self, mem, .C)
+        return 5
 
-    // TODO:
-    // // RETI
-    // case 0xD9:
-    //     return 4
+    // RETI
+    case 0xD9:
+        reti(self, mem)
+        return 4
 
-    // TODO:
-    // // JP
-    // case 0xDA:
-    //     return 4
+    // JP C, a16
+    case 0xDA:
+        jp_cc_n16(self, mem, .C)
+        return 4
 
     // ILLEGAL_DB
     case 0xDB:
         panic("Illegal Instruction: 0xDB")
 
-    // TODO:
-    // // CALL
-    // case 0xDC:
-    //     return 6
+    //  CALL C, a16 
+    case 0xDC:
+        call_cc_n16(self, mem, .C)
+        return 6
 
     // ILLEGAL_DD
     case 0xDD:
@@ -1164,10 +1176,10 @@ step :: proc(self: ^CPU, mem: ^memory.Memory) -> uint {
         sbc_a_n8(self, mem)
         return 2
 
-    // TODO:
-    // // RST
-    // case 0xDF:
-    //     return 4
+    // RST $18
+    case 0xDF:
+        rst_vec(self, mem, 0x18)
+        return 4
 
     // LDH [a8], A
     case 0xE0:
@@ -1202,20 +1214,20 @@ step :: proc(self: ^CPU, mem: ^memory.Memory) -> uint {
         and_a_n8(self, mem)
         return 2
 
-    // TODO:
-    // // RST
-    // case 0xE7:
-    //     return 4
+    // RST $20
+    case 0xE7:
+        rst_vec(self, mem, 0x20)
+        return 4
 
     // ADD SP, e8
     case 0xE8:
         add_sp_e8(self, mem)
         return 4
 
-    // TODO:
-    // // JP
-    // case 0xE9:
-    //     return 1
+    // JP HL
+    case 0xE9:
+        jp_hl(self, mem)
+        return 1
 
     // LD [a16], A
     case 0xEA:
@@ -1239,10 +1251,10 @@ step :: proc(self: ^CPU, mem: ^memory.Memory) -> uint {
         xor_a_n8(self, mem)
         return 2
 
-    // TODO:
-    // // RST $28
-    // case 0xEF:
-    //     return 4
+    // RST $28
+    case 0xEF:
+        rst_vec(self, mem, 0x28)
+        return 4
 
     // LDH A, [a8]
     case 0xF0:
@@ -1278,10 +1290,10 @@ step :: proc(self: ^CPU, mem: ^memory.Memory) -> uint {
         or_a_n8(self, mem)
         return 2
 
-    // TODO:
-    // // RST
-    // case 0xF7:
-    //     return 4
+    // RST $30
+    case 0xF7:
+        rst_vec(self, mem, 0x30)
+        return 4
 
     // LD HL, SP + e8
     case 0xF8:
@@ -1298,10 +1310,10 @@ step :: proc(self: ^CPU, mem: ^memory.Memory) -> uint {
         ld_a_n16(self, mem)
         return 4
 
-    // TODO:
-    // // EI
-    // case 0xFB:
-    //     return 1
+    // EI
+    case 0xFB:
+        ei(self)
+        return 1
 
     // ILLEGAL_FC
     case 0xFC:
@@ -1316,11 +1328,10 @@ step :: proc(self: ^CPU, mem: ^memory.Memory) -> uint {
         cp_a_n8(self, mem)
         return 2
 
-    // TODO:
-    // // RST
-    // case 0xFF:
-    //     return 4
-
+    // RST $38
+    case 0xFF:
+        rst_vec(self, mem, 0x38)
+        return 4
 
     case:
         fmt.panicf("Unknown Opcode: 0x{:02X} @ 0x{:04X}", opcode, self.regs.pc - 1)
