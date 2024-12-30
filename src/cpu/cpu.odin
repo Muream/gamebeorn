@@ -1,9 +1,7 @@
 package cpu
 
-import "base:intrinsics"
 import "core:fmt"
 import "core:log"
-import "core:math/bits"
 
 import "../memory"
 
@@ -734,7 +732,6 @@ step :: proc(self: ^CPU, mem: ^memory.Memory) -> uint {
         add_a_r8(self, mem, .A)
         return 1
 
-
     // ADC A, B
     case 0x88:
         adc_a_r8(self, mem, .B)
@@ -1110,10 +1107,9 @@ step :: proc(self: ^CPU, mem: ^memory.Memory) -> uint {
     // case 0xD2:
     //     return 4
 
-    // TODO:
-    // // ILLEGAL_D3
-    // case 0xD3:
-    //     panic("Illegal Instruction: 0xD3")
+    // ILLEGAL_D3
+    case 0xD3:
+        panic("Illegal Instruction: 0xD3")
 
     // TODO:
     // // CALL NC, a16
@@ -1150,20 +1146,18 @@ step :: proc(self: ^CPU, mem: ^memory.Memory) -> uint {
     // case 0xDA:
     //     return 4
 
-    // TODO:
-    // // ILLEGAL_DB
-    // case 0xDB:
-    //     panic("Illegal Instruction: 0xDB")
+    // ILLEGAL_DB
+    case 0xDB:
+        panic("Illegal Instruction: 0xDB")
 
     // TODO:
     // // CALL
     // case 0xDC:
     //     return 6
 
-    // TODO:
-    // // ILLEGAL_DD
-    // case 0xDD:
-    //     panic("Illegal Instruction: 0xDD")
+    // ILLEGAL_DD
+    case 0xDD:
+        panic("Illegal Instruction: 0xDD")
 
     // SBC A, n8
     case 0xDE:
@@ -1190,15 +1184,13 @@ step :: proc(self: ^CPU, mem: ^memory.Memory) -> uint {
         ldh_c_a(self, mem)
         return 2
 
-    // TODO:
-    // // ILLEGAL_E3
-    // case 0xE3:
-    //     panic("Illegal Instruction: 0xE3")
+    // ILLEGAL_E3
+    case 0xE3:
+        panic("Illegal Instruction: 0xE3")
 
-    // TODO:
-    // // ILLEGAL_E4
-    // case 0xE4:
-    //     panic("Illegal Instruction: 0xE4")
+    // ILLEGAL_E4
+    case 0xE4:
+        panic("Illegal Instruction: 0xE4")
 
     // PUSH HL
     case 0xE5:
@@ -1230,20 +1222,17 @@ step :: proc(self: ^CPU, mem: ^memory.Memory) -> uint {
         ld_n16_a(self, mem)
         return 4
 
-    // TODO:
-    // // ILLEGAL_EB
-    // case 0xEB:
-    //     panic("Illegal Instruction: 0xEB")
+    // ILLEGAL_EB
+    case 0xEB:
+        panic("Illegal Instruction: 0xEB")
 
-    // TODO:
-    // // ILLEGAL_EC
-    // case 0xEC:
-    //     panic("Illegal Instruction: 0xEC")
+    // ILLEGAL_EC
+    case 0xEC:
+        panic("Illegal Instruction: 0xEC")
 
-    // TODO:
-    // // ILLEGAL_ED
-    // case 0xED:
-    //     panic("Illegal Instruction: 0xED")
+    // ILLEGAL_ED
+    case 0xED:
+        panic("Illegal Instruction: 0xED")
 
     // XOR A, n8
     case 0xEE:
@@ -1275,10 +1264,9 @@ step :: proc(self: ^CPU, mem: ^memory.Memory) -> uint {
     // case 0xF3:
     //     return 1
 
-    // TODO:
-    // // ILLEGAL_F4
-    // case 0xF4:
-    //     panic("Illegal Instruction: 0xF4")
+    // ILLEGAL_F4
+    case 0xF4:
+        panic("Illegal Instruction: 0xF4")
 
     // PUSH AF 
     case 0xF5:
@@ -1315,15 +1303,13 @@ step :: proc(self: ^CPU, mem: ^memory.Memory) -> uint {
     // case 0xFB:
     //     return 1
 
-    // TODO:
-    // // ILLEGAL_FC
-    // case 0xFC:
-    //     panic("Illegal Instruction: 0xFC")
+    // ILLEGAL_FC
+    case 0xFC:
+        panic("Illegal Instruction: 0xFC")
 
-    // TODO:
-    // // ILLEGAL_FD
-    // case 0xFD:
-    //     panic("Illegal Instruction: 0xFD")
+    // ILLEGAL_FD
+    case 0xFD:
+        panic("Illegal Instruction: 0xFD")
 
     // CP
     case 0xFE:
