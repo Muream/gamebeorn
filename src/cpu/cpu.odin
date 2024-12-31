@@ -252,11 +252,11 @@ step_unprefixed :: proc(self: ^CPU, mem: ^memory.Memory) -> uint {
         ld_r8_n8(self, mem, .H)
         return 1
 
-    // TODO:
-    // // DAA
-    // case 0x27:
-    //     daa()
-    //     return 1
+    // DAA
+    case 0x27:
+        // daa()
+        // return 1
+        panic("DAA Not Implemented")
 
     // JR Z, e8
     case 0x28:
@@ -646,10 +646,10 @@ step_unprefixed :: proc(self: ^CPU, mem: ^memory.Memory) -> uint {
         ld_hl_r8(self, mem, .L)
         return 1
 
-    // // TODO:
-    // // HALT
-    // case 0x76:
-    //     return 1
+    // HALT
+    case 0x76:
+        // return 1
+        panic("HALT Not Implemented")
 
     // LD [HL], A
     case 0x77:

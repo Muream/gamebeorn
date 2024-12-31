@@ -13,7 +13,7 @@ tasks:
 
   run:
     cmds:
-      - odin run src/ -out=build/beorn.exe -o:none -debug
+      - odin run src/ -out=build/beorn.exe
     silent: true
 
   test:
