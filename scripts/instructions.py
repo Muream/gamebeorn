@@ -7,13 +7,25 @@ instructions = json.loads(instructions_json.read_text())
 
 text = ""
 
-for name, instruction in instructions["unprefixed"].items():
-    # 0xC0 is the last implemented instruction at the time of writing this script
-    if int(name, 16) < 0xC0:
-        continue
-
+for name, instruction in instructions["cbprefixed"].items():
     text += "// TODO:\n"
-    text += f'// // {instruction["mnemonic"]}\n'
+
+    instruction_name = instruction["mnemonic"]
+    for operand in instruction["operands"]:
+        operand_name = ""
+
+        operand_name += operand["name"].replace("$", "")
+
+        if operand.get("increment", False):
+            operand_name += "i"
+
+        if operand.get("decrement", False):
+            operand_name += "d"
+
+        instruction_name += f"_{operand_name}"
+
+    text += f"// // {instruction_name}\n"
+
     text += f"// case {name}:\n"
     if "ILLEGAL" in instruction["mnemonic"]:
         text += f'//     panic("Illegal Instruction: {name}")\n'

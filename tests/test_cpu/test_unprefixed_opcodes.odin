@@ -71,9 +71,8 @@ opcode_0x15 :: proc(t: ^testing.T) {test_opcode(t, "15")}
 @(test)
 opcode_0x16 :: proc(t: ^testing.T) {test_opcode(t, "16")}
 
-// TODO:
-// @(test)
-// opcode_0x17 :: proc(t: ^testing.T) {test_opcode(t, "17")}
+@(test)
+opcode_0x17 :: proc(t: ^testing.T) {test_opcode(t, "17")}
 
 @(test)
 opcode_0x18 :: proc(t: ^testing.T) {test_opcode(t, "18")}
@@ -96,10 +95,8 @@ opcode_0x1D :: proc(t: ^testing.T) {test_opcode(t, "1d")}
 @(test)
 opcode_0x1E :: proc(t: ^testing.T) {test_opcode(t, "1e")}
 
-// TODO:
-// @(test)
-// opcode_0x1F :: proc(t: ^testing.T) {test_opcode(t, "1f")}
-
+@(test)
+opcode_0x1F :: proc(t: ^testing.T) {test_opcode(t, "1f")}
 
 @(test)
 opcode_0x20 :: proc(t: ^testing.T) {test_opcode(t, "20")}
@@ -147,9 +144,8 @@ opcode_0x2d :: proc(t: ^testing.T) {test_opcode(t, "2d")}
 @(test)
 opcode_0x2e :: proc(t: ^testing.T) {test_opcode(t, "2e")}
 
-// TODO:
-// @(test)
-// opcode_0x2f :: proc(t: ^testing.T) {test_opcode(t, "2f")}
+@(test)
+opcode_0x2f :: proc(t: ^testing.T) {test_opcode(t, "2f")}
 
 @(test)
 opcode_0x30 :: proc(t: ^testing.T) {test_opcode(t, "30")}
@@ -198,9 +194,8 @@ opcode_0x3d :: proc(t: ^testing.T) {test_opcode(t, "3d")}
 @(test)
 opcode_0x3e :: proc(t: ^testing.T) {test_opcode(t, "3e")}
 
-// TODO:
-// @(test)
-// opcode_0x3f :: proc(t: ^testing.T) {test_opcode(t, "3f")}
+@(test)
+opcode_0x3f :: proc(t: ^testing.T) {test_opcode(t, "3f")}
 
 @(test)
 opcode_0x40 :: proc(t: ^testing.T) {test_opcode(t, "40")}
@@ -749,9 +744,8 @@ opcode_0xf1 :: proc(t: ^testing.T) {test_opcode(t, "f1")}
 @(test)
 opcode_0xf2 :: proc(t: ^testing.T) {test_opcode(t, "f2")}
 
-// TODO:
-// @(test)
-// opcode_0xf3 :: proc(t: ^testing.T) {test_opcode(t, "f3")}
+@(test)
+opcode_0xf3 :: proc(t: ^testing.T) {test_opcode(t, "f3")}
 
 // ILLEGAL
 // @(test)

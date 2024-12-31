@@ -18,7 +18,7 @@ ImeState :: enum {
 
 init :: proc() -> CPU {
     log.debug("Init CPU")
-    cpu := CPU{{pc = 0x0100}, .Disabled}
+    cpu := CPU{{pc = 0x0}, .Disabled}
     return cpu
 }
 
@@ -37,11 +37,20 @@ next_word :: proc(self: ^CPU, mem: ^memory.Memory) -> u16 {
 
 
 step :: proc(self: ^CPU, mem: ^memory.Memory) -> uint {
+    return step_unprefixed(self, mem)
+}
+
+step_unprefixed :: proc(self: ^CPU, mem: ^memory.Memory) -> uint {
 
     op_addr := self.regs.pc
     opcode := next_byte(self, mem)
 
-    log.debugf("PC: 0x%08X, OP: 0x%02X", op_addr, opcode)
+    log.debugf(
+        "PC: 0x%08X, OP: %v\t(0x%02X)",
+        op_addr,
+        cast(Unprefixed_OpCode)opcode,
+        opcode,
+    )
 
     if self.ime == .ToEnable {
         self.ime = .Enabled
@@ -163,28 +172,10 @@ step :: proc(self: ^CPU, mem: ^memory.Memory) -> uint {
         ld_r8_n8(self, mem, .D)
         return 2
 
-    // TODO:
-    // // RLA
-    // case 0x17:
-    //     // The carry flag is set to the leftmost bit of A before the rotate
-    //     mask: u8 = 0b1000_0000
-    //     carry := self.a & mask == mask
-    //
-    //     old_carry := cast(u8)(get_carry_flag(&self.regs))
-    //
-    //     self.a = self.a << 1
-
-    //     log.warnf("C: %08b, A: %08b", old_carry, self.a)
-    //     self.a |= old_carry
-    //     log.warnf("A: %08b", self.a)
-
-    //     // 0 0 0 C
-    //     set_zero_flag(&self.regs, false)
-    //     set_sub_flag(&self.regs, false)
-    //     set_half_carry_flag(&self.regs, false)
-    //     set_carry_flag(&self.regs, carry)
-
-    //     return 1
+    // RLA
+    case 0x17:
+        rla(self, mem)
+        return 1
 
     // JR e8
     case 0x18:
@@ -221,9 +212,10 @@ step :: proc(self: ^CPU, mem: ^memory.Memory) -> uint {
         ld_r8_n8(self, mem, .E)
         return 2
 
-    // TODO:
-    // // RRA
-    // case 0x1F:
+    // RRA
+    case 0x1F:
+        rra(self, mem)
+        return 1
 
     // JR NZ, e8
     case 0x20:
@@ -301,10 +293,10 @@ step :: proc(self: ^CPU, mem: ^memory.Memory) -> uint {
         ld_r8_n8(self, mem, .L)
         return 2
 
-    // // TODO:
-    // // CPL
-    // case 0x2F:
-    //     return 1
+    // CPL
+    case 0x2F:
+        cpl(self)
+        return 1
 
     // JR NC, e8
     case 0x30:
@@ -379,10 +371,10 @@ step :: proc(self: ^CPU, mem: ^memory.Memory) -> uint {
         ld_r8_n8(self, mem, .A)
         return 2
 
-    // TODO:
-    // // CCF
-    // case 0x3F:
-    //     return 1
+    // CCF
+    case 0x3F:
+        ccf(self)
+        return 1
 
     // LD B, B
     case 0x40:
@@ -1079,10 +1071,9 @@ step :: proc(self: ^CPU, mem: ^memory.Memory) -> uint {
         jp_cc_n16(self, mem, .Z)
         return 4
 
-    // TODO:
-    // // PREFIX
-    // case 0xCB:
-    //     return 1
+    // PREFIX
+    case 0xCB:
+        return step_prefixed(self, mem)
 
     // CALL Z,a16
     case 0xCC:
@@ -1271,10 +1262,10 @@ step :: proc(self: ^CPU, mem: ^memory.Memory) -> uint {
         ldh_a_c(self, mem)
         return 2
 
-    // TODO:
-    // // DI
-    // case 0xF3:
-    //     return 1
+    // DI
+    case 0xF3:
+        di(self)
+        return 1
 
     // ILLEGAL_F4
     case 0xF4:
@@ -1335,5 +1326,1308 @@ step :: proc(self: ^CPU, mem: ^memory.Memory) -> uint {
 
     case:
         fmt.panicf("Unknown Opcode: 0x{:02X} @ 0x{:04X}", opcode, self.regs.pc - 1)
+    }
+}
+
+step_prefixed :: proc(self: ^CPU, mem: ^memory.Memory) -> uint {
+
+    op_addr := self.regs.pc
+    opcode := next_byte(self, mem)
+
+    log.debugf(
+        "PC: 0x%08X, OP:   %v\t(0x%02X)",
+        op_addr,
+        cast(Prefixed_OpCode)opcode,
+        opcode,
+    )
+
+    switch opcode {
+
+    // RLC_B
+    case 0x00:
+        rlc_r8(self, mem, .B)
+        return 2
+
+    // RLC_C
+    case 0x01:
+        rlc_r8(self, mem, .C)
+        return 2
+
+    // RLC_D
+    case 0x02:
+        rlc_r8(self, mem, .D)
+        return 2
+
+    // RLC_E
+    case 0x03:
+        rlc_r8(self, mem, .E)
+        return 2
+
+    // RLC_H
+    case 0x04:
+        rlc_r8(self, mem, .H)
+        return 2
+
+    // RLC_L
+    case 0x05:
+        rlc_r8(self, mem, .L)
+        return 2
+
+    // RLC_HL
+    case 0x06:
+        rlc_hl(self, mem)
+        return 4
+
+    // RLC_A
+    case 0x07:
+        rlc_r8(self, mem, .A)
+        return 2
+
+    // RRC_B
+    case 0x08:
+        rrc_r8(self, mem, .B)
+        return 2
+
+    // RRC_C
+    case 0x09:
+        rrc_r8(self, mem, .C)
+        return 2
+
+    // RRC_D
+    case 0x0A:
+        rrc_r8(self, mem, .D)
+        return 2
+
+    // RRC_E
+    case 0x0B:
+        rrc_r8(self, mem, .E)
+        return 2
+
+    // RRC_H
+    case 0x0C:
+        rrc_r8(self, mem, .H)
+        return 2
+
+    // RRC_L
+    case 0x0D:
+        rrc_r8(self, mem, .L)
+        return 2
+
+    // RRC_HL
+    case 0x0E:
+        rrc_hl(self, mem)
+        return 4
+
+    // RRC_A
+    case 0x0F:
+        rrc_r8(self, mem, .A)
+        return 2
+
+    // RL_B
+    case 0x10:
+        rl_r8(self, mem, .B)
+        return 2
+
+    // RL_C
+    case 0x11:
+        rl_r8(self, mem, .C)
+        return 2
+
+    // RL_D
+    case 0x12:
+        rl_r8(self, mem, .D)
+        return 2
+
+    // RL_E
+    case 0x13:
+        rl_r8(self, mem, .E)
+        return 2
+
+    // RL_H
+    case 0x14:
+        rl_r8(self, mem, .H)
+        return 2
+
+    // RL_L
+    case 0x15:
+        rl_r8(self, mem, .L)
+        return 2
+
+    // RL_HL
+    case 0x16:
+        rl_hl(self, mem)
+        return 4
+
+    // RL_A
+    case 0x17:
+        rl_r8(self, mem, .A)
+        return 2
+
+    // RR_B
+    case 0x18:
+        rr_r8(self, mem, .B)
+        return 2
+
+    // RR_C
+    case 0x19:
+        rr_r8(self, mem, .C)
+        return 2
+
+    // RR_D
+    case 0x1A:
+        rr_r8(self, mem, .D)
+        return 2
+
+    // RR_E
+    case 0x1B:
+        rr_r8(self, mem, .E)
+        return 2
+
+    // RR_H
+    case 0x1C:
+        rr_r8(self, mem, .H)
+        return 2
+
+    // RR_L
+    case 0x1D:
+        rr_r8(self, mem, .L)
+        return 2
+
+    // RR_HL
+    case 0x1E:
+        rr_hl(self, mem)
+        return 4
+
+    // RR_A
+    case 0x1F:
+        rr_r8(self, mem, .A)
+        return 2
+
+    // SLA_B
+    case 0x20:
+        sla_r8(self, mem, .B)
+        return 2
+
+    // SLA_C
+    case 0x21:
+        sla_r8(self, mem, .C)
+        return 2
+
+    // SLA_D
+    case 0x22:
+        sla_r8(self, mem, .D)
+        return 2
+
+    // SLA_E
+    case 0x23:
+        sla_r8(self, mem, .E)
+        return 2
+
+    // SLA_H
+    case 0x24:
+        sla_r8(self, mem, .H)
+        return 2
+
+    // SLA_L
+    case 0x25:
+        sla_r8(self, mem, .L)
+        return 2
+
+    // SLA_HL
+    case 0x26:
+        sla_hl(self, mem)
+        return 4
+
+    // SLA_A
+    case 0x27:
+        sla_r8(self, mem, .A)
+        return 2
+
+    // SRA_B
+    case 0x28:
+        sra_r8(self, mem, .B)
+        return 2
+
+    // SRA_C
+    case 0x29:
+        sra_r8(self, mem, .C)
+        return 2
+
+    // SRA_D
+    case 0x2A:
+        sra_r8(self, mem, .D)
+        return 2
+
+    // SRA_E
+    case 0x2B:
+        sra_r8(self, mem, .E)
+        return 2
+
+    // SRA_H
+    case 0x2C:
+        sra_r8(self, mem, .H)
+        return 2
+
+    // SRA_L
+    case 0x2D:
+        sra_r8(self, mem, .L)
+        return 2
+
+    // SRA_HL
+    case 0x2E:
+        sra_hl(self, mem)
+        return 4
+
+    // SRA_A
+    case 0x2F:
+        sra_r8(self, mem, .A)
+        return 2
+
+    // SWAP_B
+    case 0x30:
+        swap_r8(self, mem, .B)
+        return 2
+
+    // SWAP_C
+    case 0x31:
+        swap_r8(self, mem, .C)
+        return 2
+
+    // SWAP_D
+    case 0x32:
+        swap_r8(self, mem, .D)
+        return 2
+
+    // SWAP_E
+    case 0x33:
+        swap_r8(self, mem, .E)
+        return 2
+
+    // SWAP_H
+    case 0x34:
+        swap_r8(self, mem, .H)
+        return 2
+
+    // SWAP_L
+    case 0x35:
+        swap_r8(self, mem, .L)
+        return 2
+
+    // SWAP_HL
+    case 0x36:
+        swap_hl(self, mem)
+        return 4
+
+    // SWAP_A
+    case 0x37:
+        swap_r8(self, mem, .A)
+        return 2
+
+    // SRL_B
+    case 0x38:
+        srl_r8(self, mem, .B)
+        return 2
+
+    // SRL_C
+    case 0x39:
+        srl_r8(self, mem, .C)
+        return 2
+
+    // SRL_D
+    case 0x3A:
+        srl_r8(self, mem, .D)
+        return 2
+
+    // SRL_E
+    case 0x3B:
+        srl_r8(self, mem, .E)
+        return 2
+
+    // SRL_H
+    case 0x3C:
+        srl_r8(self, mem, .H)
+        return 2
+
+    // SRL_L
+    case 0x3D:
+        srl_r8(self, mem, .L)
+        return 2
+
+    // SRL_HL
+    case 0x3E:
+        srl_hl(self, mem)
+        return 4
+
+    // SRL_A
+    case 0x3F:
+        srl_r8(self, mem, .A)
+        return 2
+
+    // BIT_0_B
+    case 0x40:
+        bit_u3_r8(self, mem, 0, .B)
+        return 2
+
+    // BIT_0_C
+    case 0x41:
+        bit_u3_r8(self, mem, 0, .C)
+        return 2
+
+    // BIT_0_D
+    case 0x42:
+        bit_u3_r8(self, mem, 0, .D)
+        return 2
+
+    // BIT_0_E
+    case 0x43:
+        bit_u3_r8(self, mem, 0, .E)
+        return 2
+
+    // BIT_0_H
+    case 0x44:
+        bit_u3_r8(self, mem, 0, .H)
+        return 2
+
+    // BIT_0_L
+    case 0x45:
+        bit_u3_r8(self, mem, 0, .L)
+        return 2
+
+    // BIT_0_HL
+    case 0x46:
+        bit_u3_hl(self, mem, 0)
+        return 3
+
+    // BIT_0_A
+    case 0x47:
+        bit_u3_r8(self, mem, 0, .A)
+        return 2
+
+    // BIT_1_B
+    case 0x48:
+        bit_u3_r8(self, mem, 1, .B)
+        return 2
+
+    // BIT_1_C
+    case 0x49:
+        bit_u3_r8(self, mem, 1, .C)
+        return 2
+
+    // BIT_1_D
+    case 0x4A:
+        bit_u3_r8(self, mem, 1, .D)
+        return 2
+
+    // BIT_1_E
+    case 0x4B:
+        bit_u3_r8(self, mem, 1, .E)
+        return 2
+
+    // BIT_1_H
+    case 0x4C:
+        bit_u3_r8(self, mem, 1, .H)
+        return 2
+
+    // BIT_1_L
+    case 0x4D:
+        bit_u3_r8(self, mem, 1, .L)
+        return 2
+
+    // BIT_1_HL
+    case 0x4E:
+        bit_u3_hl(self, mem, 1)
+        return 3
+
+    // BIT_1_A
+    case 0x4F:
+        bit_u3_r8(self, mem, 1, .A)
+        return 2
+
+    // BIT_2_B
+    case 0x50:
+        bit_u3_r8(self, mem, 2, .B)
+        return 2
+
+    // BIT_2_C
+    case 0x51:
+        bit_u3_r8(self, mem, 2, .C)
+        return 2
+
+    // BIT_2_D
+    case 0x52:
+        bit_u3_r8(self, mem, 2, .D)
+        return 2
+
+    // BIT_2_E
+    case 0x53:
+        bit_u3_r8(self, mem, 2, .E)
+        return 2
+
+    // BIT_2_H
+    case 0x54:
+        bit_u3_r8(self, mem, 2, .H)
+        return 2
+
+    // BIT_2_L
+    case 0x55:
+        bit_u3_r8(self, mem, 2, .L)
+        return 2
+
+    // BIT_2_HL
+    case 0x56:
+        bit_u3_hl(self, mem, 2)
+        return 3
+
+    // BIT_2_A
+    case 0x57:
+        bit_u3_r8(self, mem, 2, .A)
+        return 2
+
+    // BIT_3_B
+    case 0x58:
+        bit_u3_r8(self, mem, 3, .B)
+        return 2
+
+    // BIT_3_C
+    case 0x59:
+        bit_u3_r8(self, mem, 3, .C)
+        return 2
+
+    // BIT_3_D
+    case 0x5A:
+        bit_u3_r8(self, mem, 3, .D)
+        return 2
+
+    // BIT_3_E
+    case 0x5B:
+        bit_u3_r8(self, mem, 3, .E)
+        return 2
+
+    // BIT_3_H
+    case 0x5C:
+        bit_u3_r8(self, mem, 3, .H)
+        return 2
+
+    // BIT_3_L
+    case 0x5D:
+        bit_u3_r8(self, mem, 3, .L)
+        return 2
+
+    // BIT_3_HL
+    case 0x5E:
+        bit_u3_hl(self, mem, 3)
+        return 3
+
+    // BIT_3_A
+    case 0x5F:
+        bit_u3_r8(self, mem, 3, .A)
+        return 2
+
+    // BIT_4_B
+    case 0x60:
+        bit_u3_r8(self, mem, 4, .B)
+        return 2
+
+    // BIT_4_C
+    case 0x61:
+        bit_u3_r8(self, mem, 4, .C)
+        return 2
+
+    // BIT_4_D
+    case 0x62:
+        bit_u3_r8(self, mem, 4, .D)
+        return 2
+
+    // BIT_4_E
+    case 0x63:
+        bit_u3_r8(self, mem, 4, .E)
+        return 2
+
+    // BIT_4_H
+    case 0x64:
+        bit_u3_r8(self, mem, 4, .H)
+        return 2
+
+    // BIT_4_L
+    case 0x65:
+        bit_u3_r8(self, mem, 4, .L)
+        return 2
+
+    // BIT_4_HL
+    case 0x66:
+        bit_u3_hl(self, mem, 4)
+        return 3
+
+    // BIT_4_A
+    case 0x67:
+        bit_u3_r8(self, mem, 4, .A)
+        return 2
+
+    // BIT_5_B
+    case 0x68:
+        bit_u3_r8(self, mem, 5, .B)
+        return 2
+
+    // BIT_5_C
+    case 0x69:
+        bit_u3_r8(self, mem, 5, .C)
+        return 2
+
+    // BIT_5_D
+    case 0x6A:
+        bit_u3_r8(self, mem, 5, .D)
+        return 2
+
+    // BIT_5_E
+    case 0x6B:
+        bit_u3_r8(self, mem, 5, .E)
+        return 2
+
+    // BIT_5_H
+    case 0x6C:
+        bit_u3_r8(self, mem, 5, .H)
+        return 2
+
+    // BIT_5_L
+    case 0x6D:
+        bit_u3_r8(self, mem, 5, .L)
+        return 2
+
+    // BIT_5_HL
+    case 0x6E:
+        bit_u3_hl(self, mem, 5)
+        return 3
+
+    // BIT_5_A
+    case 0x6F:
+        bit_u3_r8(self, mem, 5, .A)
+        return 2
+
+    // BIT_6_B
+    case 0x70:
+        bit_u3_r8(self, mem, 6, .B)
+        return 2
+
+    // BIT_6_C
+    case 0x71:
+        bit_u3_r8(self, mem, 6, .C)
+        return 2
+
+    // BIT_6_D
+    case 0x72:
+        bit_u3_r8(self, mem, 6, .D)
+        return 2
+
+    // BIT_6_E
+    case 0x73:
+        bit_u3_r8(self, mem, 6, .E)
+        return 2
+
+    // BIT_6_H
+    case 0x74:
+        bit_u3_r8(self, mem, 6, .H)
+        return 2
+
+    // BIT_6_L
+    case 0x75:
+        bit_u3_r8(self, mem, 6, .L)
+        return 2
+
+    // BIT_6_HL
+    case 0x76:
+        bit_u3_hl(self, mem, 6)
+        return 3
+
+    // BIT_6_A
+    case 0x77:
+        bit_u3_r8(self, mem, 6, .A)
+        return 2
+
+    // BIT_7_B
+    case 0x78:
+        bit_u3_r8(self, mem, 7, .B)
+        return 2
+
+    // BIT_7_C
+    case 0x79:
+        bit_u3_r8(self, mem, 7, .C)
+        return 2
+
+    // BIT_7_D
+    case 0x7A:
+        bit_u3_r8(self, mem, 7, .D)
+        return 2
+
+    // BIT_7_E
+    case 0x7B:
+        bit_u3_r8(self, mem, 7, .E)
+        return 2
+
+    // BIT_7_H
+    case 0x7C:
+        bit_u3_r8(self, mem, 7, .H)
+        return 2
+
+    // BIT_7_L
+    case 0x7D:
+        bit_u3_r8(self, mem, 7, .L)
+        return 2
+
+    // BIT_7_HL
+    case 0x7E:
+        bit_u3_hl(self, mem, 7)
+        return 3
+
+    // BIT_7_A
+    case 0x7F:
+        bit_u3_r8(self, mem, 7, .A)
+        return 2
+
+    // RES_0_B
+    case 0x80:
+        res_u3_r8(self, mem, 0, .B)
+        return 2
+
+    // RES_0_C
+    case 0x81:
+        res_u3_r8(self, mem, 0, .C)
+        return 2
+
+    // RES_0_D
+    case 0x82:
+        res_u3_r8(self, mem, 0, .D)
+        return 2
+
+    // RES_0_E
+    case 0x83:
+        res_u3_r8(self, mem, 0, .E)
+        return 2
+
+    // RES_0_H
+    case 0x84:
+        res_u3_r8(self, mem, 0, .H)
+        return 2
+
+    // RES_0_L
+    case 0x85:
+        res_u3_r8(self, mem, 0, .L)
+        return 2
+
+    // RES_0_HL
+    case 0x86:
+        res_u3_hl(self, mem, 0)
+        return 4
+
+    // RES_0_A
+    case 0x87:
+        res_u3_r8(self, mem, 0, .A)
+        return 2
+
+    // RES_1_B
+    case 0x88:
+        res_u3_r8(self, mem, 1, .B)
+        return 2
+
+    // RES_1_C
+    case 0x89:
+        res_u3_r8(self, mem, 1, .C)
+        return 2
+
+    // RES_1_D
+    case 0x8A:
+        res_u3_r8(self, mem, 1, .D)
+        return 2
+
+    // RES_1_E
+    case 0x8B:
+        res_u3_r8(self, mem, 1, .E)
+        return 2
+
+    // RES_1_H
+    case 0x8C:
+        res_u3_r8(self, mem, 1, .H)
+        return 2
+
+    // RES_1_L
+    case 0x8D:
+        res_u3_r8(self, mem, 1, .L)
+        return 2
+
+    // RES_1_HL
+    case 0x8E:
+        res_u3_hl(self, mem, 1)
+        return 4
+
+    // RES_1_A
+    case 0x8F:
+        res_u3_r8(self, mem, 1, .A)
+        return 2
+
+    // RES_2_B
+    case 0x90:
+        res_u3_r8(self, mem, 2, .B)
+        return 2
+
+    // RES_2_C
+    case 0x91:
+        res_u3_r8(self, mem, 2, .C)
+        return 2
+
+    // RES_2_D
+    case 0x92:
+        res_u3_r8(self, mem, 2, .D)
+        return 2
+
+    // RES_2_E
+    case 0x93:
+        res_u3_r8(self, mem, 2, .E)
+        return 2
+
+    // RES_2_H
+    case 0x94:
+        res_u3_r8(self, mem, 2, .H)
+        return 2
+
+    // RES_2_L
+    case 0x95:
+        res_u3_r8(self, mem, 2, .L)
+        return 2
+
+    // RES_2_HL
+    case 0x96:
+        res_u3_hl(self, mem, 2)
+        return 4
+
+    // RES_2_A
+    case 0x97:
+        res_u3_r8(self, mem, 2, .A)
+        return 2
+
+    // RES_3_B
+    case 0x98:
+        res_u3_r8(self, mem, 3, .B)
+        return 2
+
+    // RES_3_C
+    case 0x99:
+        res_u3_r8(self, mem, 3, .C)
+        return 2
+
+    // RES_3_D
+    case 0x9A:
+        res_u3_r8(self, mem, 3, .D)
+        return 2
+
+    // RES_3_E
+    case 0x9B:
+        res_u3_r8(self, mem, 3, .E)
+        return 2
+
+    // RES_3_H
+    case 0x9C:
+        res_u3_r8(self, mem, 3, .H)
+        return 2
+
+    // RES_3_L
+    case 0x9D:
+        res_u3_r8(self, mem, 3, .L)
+        return 2
+
+    // RES_3_HL
+    case 0x9E:
+        res_u3_hl(self, mem, 3)
+        return 4
+
+    // RES_3_A
+    case 0x9F:
+        res_u3_r8(self, mem, 3, .A)
+        return 2
+
+    // RES_4_B
+    case 0xA0:
+        res_u3_r8(self, mem, 4, .B)
+        return 2
+
+    // RES_4_C
+    case 0xA1:
+        res_u3_r8(self, mem, 4, .C)
+        return 2
+
+    // RES_4_D
+    case 0xA2:
+        res_u3_r8(self, mem, 4, .D)
+        return 2
+
+    // RES_4_E
+    case 0xA3:
+        res_u3_r8(self, mem, 4, .E)
+        return 2
+
+    // RES_4_H
+    case 0xA4:
+        res_u3_r8(self, mem, 4, .H)
+        return 2
+
+    // RES_4_L
+    case 0xA5:
+        res_u3_r8(self, mem, 4, .L)
+        return 2
+
+    // RES_4_HL
+    case 0xA6:
+        res_u3_hl(self, mem, 4)
+        return 4
+
+    // RES_4_A
+    case 0xA7:
+        res_u3_r8(self, mem, 4, .A)
+        return 2
+
+    // RES_5_B
+    case 0xA8:
+        res_u3_r8(self, mem, 5, .B)
+        return 2
+
+    // RES_5_C
+    case 0xA9:
+        res_u3_r8(self, mem, 5, .C)
+        return 2
+
+    // RES_5_D
+    case 0xAA:
+        res_u3_r8(self, mem, 5, .D)
+        return 2
+
+    // RES_5_E
+    case 0xAB:
+        res_u3_r8(self, mem, 5, .E)
+        return 2
+
+    // RES_5_H
+    case 0xAC:
+        res_u3_r8(self, mem, 5, .H)
+        return 2
+
+    // RES_5_L
+    case 0xAD:
+        res_u3_r8(self, mem, 5, .L)
+        return 2
+
+    // RES_5_HL
+    case 0xAE:
+        res_u3_hl(self, mem, 5)
+        return 4
+
+    // RES_5_A
+    case 0xAF:
+        res_u3_r8(self, mem, 5, .A)
+        return 2
+
+    // RES_6_B
+    case 0xB0:
+        res_u3_r8(self, mem, 6, .B)
+        return 2
+
+    // RES_6_C
+    case 0xB1:
+        res_u3_r8(self, mem, 6, .C)
+        return 2
+
+    // RES_6_D
+    case 0xB2:
+        res_u3_r8(self, mem, 6, .D)
+        return 2
+
+    // RES_6_E
+    case 0xB3:
+        res_u3_r8(self, mem, 6, .E)
+        return 2
+
+    // RES_6_H
+    case 0xB4:
+        res_u3_r8(self, mem, 6, .H)
+        return 2
+
+    // RES_6_L
+    case 0xB5:
+        res_u3_r8(self, mem, 6, .L)
+        return 2
+
+    // RES_6_HL
+    case 0xB6:
+        res_u3_hl(self, mem, 6)
+        return 4
+
+    // RES_6_A
+    case 0xB7:
+        res_u3_r8(self, mem, 6, .A)
+        return 2
+
+    // RES_7_B
+    case 0xB8:
+        res_u3_r8(self, mem, 7, .B)
+        return 2
+
+    // RES_7_C
+    case 0xB9:
+        res_u3_r8(self, mem, 7, .C)
+        return 2
+
+    // RES_7_D
+    case 0xBA:
+        res_u3_r8(self, mem, 7, .D)
+        return 2
+
+    // RES_7_E
+    case 0xBB:
+        res_u3_r8(self, mem, 7, .E)
+        return 2
+
+    // RES_7_H
+    case 0xBC:
+        res_u3_r8(self, mem, 7, .H)
+        return 2
+
+    // RES_7_L
+    case 0xBD:
+        res_u3_r8(self, mem, 7, .L)
+        return 2
+
+    // RES_7_HL
+    case 0xBE:
+        res_u3_hl(self, mem, 7)
+        return 4
+
+    // RES_7_A
+    case 0xBF:
+        res_u3_r8(self, mem, 7, .A)
+        return 2
+
+    // SET_0_B
+    case 0xC0:
+        set_u3_r8(self, mem, 0, .B)
+        return 2
+
+    // SET_0_C
+    case 0xC1:
+        set_u3_r8(self, mem, 0, .C)
+        return 2
+
+    // SET_0_D
+    case 0xC2:
+        set_u3_r8(self, mem, 0, .D)
+        return 2
+
+    // SET_0_E
+    case 0xC3:
+        set_u3_r8(self, mem, 0, .E)
+        return 2
+
+    // SET_0_H
+    case 0xC4:
+        set_u3_r8(self, mem, 0, .H)
+        return 2
+
+    // SET_0_L
+    case 0xC5:
+        set_u3_r8(self, mem, 0, .L)
+        return 2
+
+    // SET_0_HL
+    case 0xC6:
+        set_u3_hl(self, mem, 0)
+        return 4
+
+    // SET_0_A
+    case 0xC7:
+        set_u3_r8(self, mem, 0, .A)
+        return 2
+
+    // SET_1_B
+    case 0xC8:
+        set_u3_r8(self, mem, 1, .B)
+        return 2
+
+    // SET_1_C
+    case 0xC9:
+        set_u3_r8(self, mem, 1, .C)
+        return 2
+
+    // SET_1_D
+    case 0xCA:
+        set_u3_r8(self, mem, 1, .D)
+        return 2
+
+    // SET_1_E
+    case 0xCB:
+        set_u3_r8(self, mem, 1, .E)
+        return 2
+
+    // SET_1_H
+    case 0xCC:
+        set_u3_r8(self, mem, 1, .H)
+        return 2
+
+    // SET_1_L
+    case 0xCD:
+        set_u3_r8(self, mem, 1, .L)
+        return 2
+
+    // SET_1_HL
+    case 0xCE:
+        set_u3_hl(self, mem, 1)
+        return 4
+
+    // SET_1_A
+    case 0xCF:
+        set_u3_r8(self, mem, 1, .A)
+        return 2
+
+    // SET_2_B
+    case 0xD0:
+        set_u3_r8(self, mem, 2, .B)
+        return 2
+
+    // SET_2_C
+    case 0xD1:
+        set_u3_r8(self, mem, 2, .C)
+        return 2
+
+    // SET_2_D
+    case 0xD2:
+        set_u3_r8(self, mem, 2, .D)
+        return 2
+
+    // SET_2_E
+    case 0xD3:
+        set_u3_r8(self, mem, 2, .E)
+        return 2
+
+    // SET_2_H
+    case 0xD4:
+        set_u3_r8(self, mem, 2, .H)
+        return 2
+
+    // SET_2_L
+    case 0xD5:
+        set_u3_r8(self, mem, 2, .L)
+        return 2
+
+    // SET_2_HL
+    case 0xD6:
+        set_u3_hl(self, mem, 2)
+        return 4
+
+    // SET_2_A
+    case 0xD7:
+        set_u3_r8(self, mem, 2, .A)
+        return 2
+
+    // SET_3_B
+    case 0xD8:
+        set_u3_r8(self, mem, 3, .B)
+        return 2
+
+    // SET_3_C
+    case 0xD9:
+        set_u3_r8(self, mem, 3, .C)
+        return 2
+
+    // SET_3_D
+    case 0xDA:
+        set_u3_r8(self, mem, 3, .D)
+        return 2
+
+    // SET_3_E
+    case 0xDB:
+        set_u3_r8(self, mem, 3, .E)
+        return 2
+
+    // SET_3_H
+    case 0xDC:
+        set_u3_r8(self, mem, 3, .H)
+        return 2
+
+    // SET_3_L
+    case 0xDD:
+        set_u3_r8(self, mem, 3, .L)
+        return 2
+
+    // SET_3_HL
+    case 0xDE:
+        set_u3_hl(self, mem, 3)
+        return 4
+
+    // SET_3_A
+    case 0xDF:
+        set_u3_r8(self, mem, 3, .A)
+        return 2
+
+    // SET_4_B
+    case 0xE0:
+        set_u3_r8(self, mem, 4, .B)
+        return 2
+
+    // SET_4_C
+    case 0xE1:
+        set_u3_r8(self, mem, 4, .C)
+        return 2
+
+    // SET_4_D
+    case 0xE2:
+        set_u3_r8(self, mem, 4, .D)
+        return 2
+
+    // SET_4_E
+    case 0xE3:
+        set_u3_r8(self, mem, 4, .E)
+        return 2
+
+    // SET_4_H
+    case 0xE4:
+        set_u3_r8(self, mem, 4, .H)
+        return 2
+
+    // SET_4_L
+    case 0xE5:
+        set_u3_r8(self, mem, 4, .L)
+        return 2
+
+    // SET_4_HL
+    case 0xE6:
+        set_u3_hl(self, mem, 4)
+        return 4
+
+    // SET_4_A
+    case 0xE7:
+        set_u3_r8(self, mem, 4, .A)
+        return 2
+
+    // SET_5_B
+    case 0xE8:
+        set_u3_r8(self, mem, 5, .B)
+        return 2
+
+    // SET_5_C
+    case 0xE9:
+        set_u3_r8(self, mem, 5, .C)
+        return 2
+
+    // SET_5_D
+    case 0xEA:
+        set_u3_r8(self, mem, 5, .D)
+        return 2
+
+    // SET_5_E
+    case 0xEB:
+        set_u3_r8(self, mem, 5, .E)
+        return 2
+
+    // SET_5_H
+    case 0xEC:
+        set_u3_r8(self, mem, 5, .H)
+        return 2
+
+    // SET_5_L
+    case 0xED:
+        set_u3_r8(self, mem, 5, .L)
+        return 2
+
+    // SET_5_HL
+    case 0xEE:
+        set_u3_hl(self, mem, 5)
+        return 4
+
+    // SET_5_A
+    case 0xEF:
+        set_u3_r8(self, mem, 5, .A)
+        return 2
+
+    // SET_6_B
+    case 0xF0:
+        set_u3_r8(self, mem, 6, .B)
+        return 2
+
+    // SET_6_C
+    case 0xF1:
+        set_u3_r8(self, mem, 6, .C)
+        return 2
+
+    // SET_6_D
+    case 0xF2:
+        set_u3_r8(self, mem, 6, .D)
+        return 2
+
+    // SET_6_E
+    case 0xF3:
+        set_u3_r8(self, mem, 6, .E)
+        return 2
+
+    // SET_6_H
+    case 0xF4:
+        set_u3_r8(self, mem, 6, .H)
+        return 2
+
+    // SET_6_L
+    case 0xF5:
+        set_u3_r8(self, mem, 6, .L)
+        return 2
+
+    // SET_6_HL
+    case 0xF6:
+        set_u3_hl(self, mem, 6)
+        return 4
+
+    // SET_6_A
+    case 0xF7:
+        set_u3_r8(self, mem, 6, .A)
+        return 2
+
+    // SET_7_B
+    case 0xF8:
+        set_u3_r8(self, mem, 7, .B)
+        return 2
+
+    // SET_7_C
+    case 0xF9:
+        set_u3_r8(self, mem, 7, .C)
+        return 2
+
+    // SET_7_D
+    case 0xFA:
+        set_u3_r8(self, mem, 7, .D)
+        return 2
+
+    // SET_7_E
+    case 0xFB:
+        set_u3_r8(self, mem, 7, .E)
+        return 2
+
+    // SET_7_H
+    case 0xFC:
+        set_u3_r8(self, mem, 7, .H)
+        return 2
+
+    // SET_7_L
+    case 0xFD:
+        set_u3_r8(self, mem, 7, .L)
+        return 2
+
+    // SET_7_HL
+    case 0xFE:
+        set_u3_hl(self, mem, 7)
+        return 4
+
+    // SET_7_A
+    case 0xFF:
+        set_u3_r8(self, mem, 7, .A)
+        return 2
+
+    case:
+        fmt.panicf(
+            "Unknown Prefixed Opcode: 0x{:02X} @ 0x{:04X}",
+            opcode,
+            self.regs.pc - 1,
+        )
     }
 }

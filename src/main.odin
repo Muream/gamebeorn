@@ -2,6 +2,7 @@ package main
 
 import "base:intrinsics"
 import "core:fmt"
+import "core:log"
 import "core:os"
 
 
@@ -11,17 +12,24 @@ import "memory"
 
 
 main :: proc() {
-    // emu := emulator.init()
+    context.logger = log.create_console_logger()
 
-    // filepath := `roms\blargg\cpu_instrs\cpu_instrs.gb`
-    // data, ok := os.read_entire_file(filepath, context.allocator)
-    // emu.gb.mem.rom = memory.load_rom(data)
+    emu := emulator.init()
 
-    // for true {
-    //     cpu.step(&emu.gb.cpu, &emu.gb.mem)
+    {
+        boot_rom_path := `roms\dmg_boot.bin`
+        boot_rom, ok := os.read_entire_file(boot_rom_path)
+        copy(emu.gb.mem.mem[0x00:0x0100], boot_rom[:])
+    }
+
+    // {
+    //     rom_path := `roms\blargg\cpu_instrs\cpu_instrs.gb`
+    //     data, ok := os.read_entire_file(rom_path)
+    //     copy(emu.gb.mem.mem[0x00:0x3FFF], data[:])
     // }
-    a: u8 = 255
-    b, overflow := intrinsics.overflow_add(a, 1)
+    // emu.gb.cpu.pc = 0x100
 
-    fmt.println(a, b, overflow)
+    for true {
+        cpu.step(&emu.gb.cpu, &emu.gb.mem)
+    }
 }

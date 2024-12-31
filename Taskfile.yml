@@ -8,12 +8,12 @@ tasks:
 
   build:
     cmds:
-      - odin build src/ -out=build/beorn.exe
+      - odin build src/ -out=build/beorn.exe -o:none -debug
     silent: true
 
   run:
     cmds:
-      - odin run src/ -out=build/beorn.exe
+      - odin run src/ -out=build/beorn.exe -o:none -debug
     silent: true
 
   test:
