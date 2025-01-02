@@ -10,6 +10,7 @@ import rl "vendor:raylib"
 import "cpu"
 import "emulator"
 import "memory"
+import "ui"
 
 TILE_COUNT :: 384
 
@@ -19,51 +20,33 @@ TILE_ROW_SIZE :: 2
 TILES_PER_ROW :: 24
 COLUMN_COUNT :: TILE_COUNT / TILES_PER_ROW
 
-PIXEL_SIZE :: 1
+PIXEL_SIZE :: 7
 GAP :: 2
 BORDER :: 15
-
-FONT_ID_BODY_18 :: 0
 
 palette := [?]rl.Color{rl.BLACK, rl.DARKGRAY, rl.GRAY, rl.WHITE}
 
 main :: proc() {
-    context.logger = log.create_console_logger()
+    context.logger = log.create_console_logger(opt = {.Level, .Terminal_Color, .Line})
 
-    rl.SetConfigFlags({.VSYNC_HINT})
+    // rl.SetConfigFlags({.VSYNC_HINT})
 
     width: i32 = TILES_PER_ROW * (PIXEL_SIZE * 8 + GAP) + BORDER * 2
     height: i32 = COLUMN_COUNT * (PIXEL_SIZE * 8 + GAP) + BORDER * 2
     rl.InitWindow(width, height, "GameBeorn")
     defer rl.CloseWindow()
 
-    minMemorySize: u32 = clay.MinMemorySize()
-    memory := make([^]u8, minMemorySize)
-    arena: clay.Arena = clay.CreateArenaWithCapacityAndMemory(minMemorySize, memory)
-    clay.Initialize(arena, {cast(f32)width, cast(f32)height})
-    clay.SetMeasureTextFunction(measureText)
-
-    font_path: cstring = `fonts\Roboto\Roboto-Regular.ttf`
-    raylibFonts[FONT_ID_BODY_18] = RaylibFont {
-        font   = rl.LoadFontEx(font_path, cast(i32)32 * 2, nil, 0),
-        fontId = cast(u16)FONT_ID_BODY_18,
-    }
-
-
-    text_config: clay.TextElementConfig = {
-        fontId    = FONT_ID_BODY_18,
-        fontSize  = 32,
-        textColor = {255, 255, 255, 255},
-    }
+    ui.init_clay(cast(f32)width, cast(f32)height)
 
     // This just makes sure your battery doesn't drain too fast in case VSYNC
     // is forced off.
-    rl.SetTargetFPS(60)
+    // rl.SetTargetFPS(60)
 
     emu := emulator.init()
 
     // rom_path := `roms\dmg-acid2\dmg-acid2.gb`
     // rom_path := `roms\GB\Japan\Tetris (Japan) (En)\Tetris (Japan) (En).gb`
+    // rom_path := `roms\blargg\cpu_instrs\individual\01-special.gb`
     rom_path := `roms\blargg\cpu_instrs\cpu_instrs.gb`
     rom, rom_ok := os.read_entire_file(rom_path)
     if !rom_ok {
@@ -78,98 +61,56 @@ main :: proc() {
     //     panic("Could not read Boot ROM")
     // }
     // copy(emu.gb.mem.mem[:], boot_rom[:])
+    // emu.gb.cpu.pc = 0x0000
 
-    step: bool = false
+    emu.state = .Paused
     for !rl.WindowShouldClose() {
+        emu.frame_time = rl.GetFrameTime()
         clay.SetLayoutDimensions(
             {cast(f32)rl.GetScreenWidth(), cast(f32)rl.GetScreenHeight()},
         )
 
-        if rl.IsKeyPressed(.F8) {step = true}
+        if rl.IsKeyPressed(.F8) {emu.state = .Stepping}
+        if rl.IsKeyPressed(.F9) {emu.state = .Playing}
 
-        if step {
+        if emu.state != .Paused {
             cpu.step(&emu.gb.cpu, &emu.gb.mem)
-            step = false
+        }
+
+        if emu.state == .Stepping {
+            emu.state = .Paused
         }
 
         clay.BeginLayout()
-        if clay.UI(
-            clay.Rectangle({color = {255, 0, 0, 255}}),
-            clay.Layout(
-                {sizing = {width = clay.SizingGrow({}), height = clay.SizingGrow({})}},
-            ),
-        ) {
-            if clay.UI(
-                clay.ID("Left Panel"),
-                clay.Rectangle({color = {90, 90, 90, 255}}),
-                clay.Layout(
-                    {
-                        layoutDirection = clay.LayoutDirection.TOP_TO_BOTTOM,
-                        sizing = {
-                            width = clay.SizingGrow({}),
-                            height = clay.SizingGrow({}),
-                        },
-                    },
-                ),
-            ) {
-                clay.Text("CPU", &text_config)
-                z := "Z" if cpu.get_zero_flag(&emu.gb.cpu) else "-"
-                n := "N" if cpu.get_sub_flag(&emu.gb.cpu) else "-"
-                h := "H" if cpu.get_half_carry_flag(&emu.gb.cpu) else "-"
-                c := "C" if cpu.get_carry_flag(&emu.gb.cpu) else "-"
-                clay.Text(
-                    fmt.aprintf(
-                        "AF: %02X %02X %v %v %v %v",
-                        emu.gb.cpu.a,
-                        emu.gb.cpu.f,
-                        z,
-                        n,
-                        h,
-                        c,
-                    ),
-                    &text_config,
-                )
-                clay.Text(
-                    fmt.aprintf("BC: %02X %02X", emu.gb.cpu.b, emu.gb.cpu.c),
-                    &text_config,
-                )
-                clay.Text(
-                    fmt.aprintf("DE: %02X %02X", emu.gb.cpu.d, emu.gb.cpu.e),
-                    &text_config,
-                )
-                clay.Text(
-                    fmt.aprintf("HL: %02X %02X", emu.gb.cpu.h, emu.gb.cpu.l),
-                    &text_config,
-                )
-                clay.Text(fmt.aprintf("SP: %04X", emu.gb.cpu.sp), &text_config)
-                clay.Text(fmt.aprintf("PC: %04X", emu.gb.cpu.pc), &text_config)
-            }
-        }
+        ui.cpu_panel(&emu)
         render_commands := clay.EndLayout()
 
         rl.BeginDrawing()
+        rl.ClearBackground(rl.DARKBLUE)
 
-        clayRaylibRender(&render_commands)
+        draw_tiles(&emu)
+
+        // ui.clayRaylibRender(&render_commands)
 
         rl.EndDrawing()
     }
 }
 
+
 draw_tiles :: proc(emu: ^emulator.Emulator) {
-    // tile_addr := 0x8000
-    // pos: rl.Vector2 = {0, 0}
-    // for tile_idx in 0 ..< 384 {
-    //     pos.x =
-    //     cast(f32)((tile_idx % TILES_PER_ROW) * (PIXEL_SIZE * 8 + GAP) + BORDER)
-    //     pos.y =
-    //     cast(f32)((tile_idx / TILES_PER_ROW) * (PIXEL_SIZE * 8 + GAP) + BORDER)
+    tile_addr := 0x8000
+    pos: rl.Vector2 = {0, 0}
+    for tile_idx in 0 ..< 384 {
+        pos.x = cast(f32)((tile_idx % TILES_PER_ROW) * (PIXEL_SIZE * 8 + GAP) + BORDER)
+        pos.y = cast(f32)((tile_idx / TILES_PER_ROW) * (PIXEL_SIZE * 8 + GAP) + BORDER)
 
-    //     tile := emu.gb.mem.mem[tile_addr:tile_addr + TILE_SIZE]
+        tile := emu.gb.mem.mem[tile_addr:tile_addr + TILE_SIZE]
+        // fmt.printfln("%02x: %02x", tile_addr, tile)
 
-    //     draw_tile(tile, pos)
+        draw_tile(tile, pos)
 
-    //     tile_addr += TILE_SIZE
-    // }
+        tile_addr += TILE_SIZE
+    }
 }
 
 
@@ -179,21 +120,42 @@ draw_tile :: proc(tile: []u8, pos: rl.Vector2) {
     for row_idx in 0 ..< 8 {
         addr := row_idx * TILE_ROW_SIZE
         row := tile[addr:addr + TILE_ROW_SIZE]
-        for byte in row {
-            for pixel in 0 ..< 4 {
-                offset := cast(uint)pixel * 2
-                value := (byte & (0b1100_0000 >> offset)) >> offset
-                color := palette[value]
-                rl.DrawRectangle(
-                    x + cast(i32)pos.x,
-                    y + cast(i32)pos.y,
-                    PIXEL_SIZE,
-                    PIXEL_SIZE,
-                    color,
-                )
-                x += PIXEL_SIZE
+        byte1 := tile[0] // 0b1100_1100
+        byte2 := tile[1] // 0b0110_1010
+
+        for pixel in 0 ..< 8 {
+            mask: u8 = 1 < (7 - pixel)
+            lsb := byte1 & mask
+            msb := byte2 & mask
+            // offset := cast(uint)pixel * 2
+            // mask: u8 = 0b1100_0000 >> offset
+            // value := (byte & (mask)) >> (6 - offset)
+            asdf: struct {
+                _: bool,
+                _: bool,
+            } = {lsb != 0, msb != 0}
+
+            color: rl.Color
+            switch asdf {
+            case {true, true}:
+                color = palette[0]
+            case {true, false}:
+                color = palette[1]
+            case {false, true}:
+                color = palette[2]
+            case {false, false}:
+                color = palette[3]
             }
+            rl.DrawRectangle(
+                x + cast(i32)pos.x,
+                y + cast(i32)pos.y,
+                PIXEL_SIZE,
+                PIXEL_SIZE,
+                color,
+            )
+            x += PIXEL_SIZE
         }
+
         x = 0
         y += PIXEL_SIZE
     }

@@ -9,7 +9,7 @@ import "../memory"
 // ┌─╂─   C   ←╂─╂─ b7 ← ... ← b0 ←╂─┐
 // │ ┗━━━━━━━━━┛ ┗━━━━━━━━━━━━━━━━━┛ │
 // └─────────────────────────────────┘
-rl_r8 :: proc(self: ^CPU, mem: ^memory.Memory, register: Register) {
+rl_r8 :: #force_inline proc(self: ^CPU, mem: ^memory.Memory, register: Register) {
     reg := get_r8(self, register)
     v := reg^
 
@@ -32,7 +32,7 @@ rl_r8 :: proc(self: ^CPU, mem: ^memory.Memory, register: Register) {
 // ┌─╂─   C   ←╂─╂─ b7 ← ... ← b0 ←╂─┐
 // │ ┗━━━━━━━━━┛ ┗━━━━━━━━━━━━━━━━━┛ │
 // └─────────────────────────────────┘
-rl_hl :: proc(self: ^CPU, mem: ^memory.Memory) {
+rl_hl :: #force_inline proc(self: ^CPU, mem: ^memory.Memory) {
 
     addr := get_hl(self)
     v := memory.read(mem, addr)
@@ -50,7 +50,7 @@ rl_hl :: proc(self: ^CPU, mem: ^memory.Memory) {
     set_carry_flag(self, carry)
 }
 
-rla :: proc(self: ^CPU, mem: ^memory.Memory) {
+rla :: #force_inline proc(self: ^CPU, mem: ^memory.Memory) {
     // The carry flag is set to the leftmost bit of A before the rotate
     mask: u8 = 0b1000_0000
     carry := self.a & mask == mask
@@ -75,7 +75,7 @@ rla :: proc(self: ^CPU, mem: ^memory.Memory) {
 // ┃    C   ←╂─┬─╂─ b7 ← ... ← b0 ←╂─┐
 // ┗━━━━━━━━━┛ │ ┗━━━━━━━━━━━━━━━━━┛ │
 //             └─────────────────────┘
-rlc_r8 :: proc(self: ^CPU, mem: ^memory.Memory, register: Register) {
+rlc_r8 :: #force_inline proc(self: ^CPU, mem: ^memory.Memory, register: Register) {
     reg := get_r8(self, register)
     v := reg^
 
@@ -97,7 +97,7 @@ rlc_r8 :: proc(self: ^CPU, mem: ^memory.Memory, register: Register) {
 // ┃    C   ←╂─┬─╂─ b7 ← ... ← b0 ←╂─┐
 // ┗━━━━━━━━━┛ │ ┗━━━━━━━━━━━━━━━━━┛ │
 //             └─────────────────────┘
-rlc_hl :: proc(self: ^CPU, mem: ^memory.Memory) {
+rlc_hl :: #force_inline proc(self: ^CPU, mem: ^memory.Memory) {
     addr := get_hl(self)
     v := memory.read(mem, addr)
 
@@ -112,7 +112,7 @@ rlc_hl :: proc(self: ^CPU, mem: ^memory.Memory) {
     set_carry_flag(self, carry)
 }
 
-rlca :: proc(self: ^CPU, mem: ^memory.Memory) {
+rlca :: #force_inline proc(self: ^CPU, mem: ^memory.Memory) {
     rlc_r8(self, mem, .A)
     set_zero_flag(self, false)
 }
@@ -123,7 +123,7 @@ rlca :: proc(self: ^CPU, mem: ^memory.Memory) {
 // ┌─╂→ b7 → ... → b0 ─╂─╂→   C   ─╂─┐
 // │ ┗━━━━━━━━━━━━━━━━━┛ ┗━━━━━━━━━┛ │
 // └─────────────────────────────────┘
-rr_r8 :: proc(self: ^CPU, mem: ^memory.Memory, register: Register) {
+rr_r8 :: #force_inline proc(self: ^CPU, mem: ^memory.Memory, register: Register) {
     reg := get_r8(self, register)
     v := reg^
     r := rr(self, mem, v)
@@ -135,19 +135,19 @@ rr_r8 :: proc(self: ^CPU, mem: ^memory.Memory, register: Register) {
 // ┌─╂→ b7 → ... → b0 ─╂─╂→   C   ─╂─┐
 // │ ┗━━━━━━━━━━━━━━━━━┛ ┗━━━━━━━━━┛ │
 // └─────────────────────────────────┘
-rr_hl :: proc(self: ^CPU, mem: ^memory.Memory) {
+rr_hl :: #force_inline proc(self: ^CPU, mem: ^memory.Memory) {
     addr := get_hl(self)
     v := memory.read(mem, addr)
     r := rr(self, mem, v)
     memory.write(mem, addr, r)
 }
 
-rra :: proc(self: ^CPU, mem: ^memory.Memory) {
+rra :: #force_inline proc(self: ^CPU, mem: ^memory.Memory) {
     rr_r8(self, mem, .A)
     set_zero_flag(self, false)
 }
 
-rr :: proc(self: ^CPU, mem: ^memory.Memory, value: u8) -> u8 {
+rr :: #force_inline proc(self: ^CPU, mem: ^memory.Memory, value: u8) -> u8 {
     old_carry := cast(u8)get_carry_flag(self) << 7
     carry := value & 0b0000_0001 == 0b0000_0001
 
@@ -166,7 +166,7 @@ rr :: proc(self: ^CPU, mem: ^memory.Memory, value: u8) -> u8 {
 // ┌─╂→ b7 → ... → b0 ─╂─┬─╂→   C    ┃
 // │ ┗━━━━━━━━━━━━━━━━━┛ │ ┗━━━━━━━━━┛
 // └─────────────────────┘
-rrc_r8 :: proc(self: ^CPU, mem: ^memory.Memory, register: Register) {
+rrc_r8 :: #force_inline proc(self: ^CPU, mem: ^memory.Memory, register: Register) {
     reg := get_r8(self, register)
     v := reg^
 
@@ -188,7 +188,7 @@ rrc_r8 :: proc(self: ^CPU, mem: ^memory.Memory, register: Register) {
 // ┌─╂→ b7 → ... → b0 ─╂─┬─╂→   C    ┃
 // │ ┗━━━━━━━━━━━━━━━━━┛ │ ┗━━━━━━━━━┛
 // └─────────────────────┘
-rrc_hl :: proc(self: ^CPU, mem: ^memory.Memory) {
+rrc_hl :: #force_inline proc(self: ^CPU, mem: ^memory.Memory) {
     addr := get_hl(self)
     v := memory.read(mem, addr)
 
@@ -203,7 +203,7 @@ rrc_hl :: proc(self: ^CPU, mem: ^memory.Memory) {
     set_carry_flag(self, carry)
 }
 
-rrca :: proc(self: ^CPU, mem: ^memory.Memory) {
+rrca :: #force_inline proc(self: ^CPU, mem: ^memory.Memory) {
     rrc_r8(self, mem, .A)
     set_zero_flag(self, false)
 }
@@ -212,7 +212,7 @@ rrca :: proc(self: ^CPU, mem: ^memory.Memory) {
 // ┏━ Flags ━┓ ┏━━━━━━━ r8 ━━━━━━┓
 // ┃    C   ←╂─╂─ b7 ← ... ← b0 ←╂─ 0
 // ┗━━━━━━━━━┛ ┗━━━━━━━━━━━━━━━━━┛
-sla_r8 :: proc(self: ^CPU, mem: ^memory.Memory, register: Register) {
+sla_r8 :: #force_inline proc(self: ^CPU, mem: ^memory.Memory, register: Register) {
     reg := get_r8(self, register)
     v := reg^
     r := sla(self, v)
@@ -223,21 +223,21 @@ sla_r8 :: proc(self: ^CPU, mem: ^memory.Memory, register: Register) {
 // ┏━ Flags ━┓ ┏━━━━━━ HL^ ━━━━━━┓
 // ┃    C   ←╂─╂─ b7 ← ... ← b0 ←╂─ 0
 // ┗━━━━━━━━━┛ ┗━━━━━━━━━━━━━━━━━┛
-sla_hl :: proc(self: ^CPU, mem: ^memory.Memory) {
+sla_hl :: #force_inline proc(self: ^CPU, mem: ^memory.Memory) {
     addr := get_hl(self)
     v := memory.read(mem, addr)
     r := sla(self, v)
     memory.write(mem, addr, r)
 }
 
-sra_r8 :: proc(self: ^CPU, mem: ^memory.Memory, register: Register) {
+sra_r8 :: #force_inline proc(self: ^CPU, mem: ^memory.Memory, register: Register) {
     reg := get_r8(self, register)
     v := reg^
     r := sra(self, v)
     reg^ = r
 }
 
-sra_hl :: proc(self: ^CPU, mem: ^memory.Memory) {
+sra_hl :: #force_inline proc(self: ^CPU, mem: ^memory.Memory) {
     addr := get_hl(self)
     v := memory.read(mem, addr)
     r := sra(self, v)
@@ -248,14 +248,14 @@ sra_hl :: proc(self: ^CPU, mem: ^memory.Memory) {
 //    ┏━━━━━━━ r8 ━━━━━━┓ ┏━ Flags ━┓
 // 0 ─╂→ b7 → ... → b0 ─╂─╂→   C    ┃
 //    ┗━━━━━━━━━━━━━━━━━┛ ┗━━━━━━━━━┛
-srl_r8 :: proc(self: ^CPU, mem: ^memory.Memory, register: Register) {
+srl_r8 :: #force_inline proc(self: ^CPU, mem: ^memory.Memory, register: Register) {
     reg := get_r8(self, register)
     v := reg^
     r := srl(self, v)
     reg^ = r
 }
 
-srl_hl :: proc(self: ^CPU, mem: ^memory.Memory) {
+srl_hl :: #force_inline proc(self: ^CPU, mem: ^memory.Memory) {
     addr := get_hl(self)
     v := memory.read(mem, addr)
     r := srl(self, v)
@@ -263,7 +263,7 @@ srl_hl :: proc(self: ^CPU, mem: ^memory.Memory) {
 }
 
 
-srl :: proc(self: ^CPU, value: u8) -> u8 {
+srl :: #force_inline proc(self: ^CPU, value: u8) -> u8 {
     c := value & 0b0000_0001 == 0b0000_0001
     r := value >> 1
 
@@ -275,7 +275,7 @@ srl :: proc(self: ^CPU, value: u8) -> u8 {
     return r
 }
 
-sla :: proc(self: ^CPU, value: u8) -> u8 {
+sla :: #force_inline proc(self: ^CPU, value: u8) -> u8 {
     c := value & 0b1000_0000 == 0b1000_0000
     r := value << 1
 
@@ -287,7 +287,7 @@ sla :: proc(self: ^CPU, value: u8) -> u8 {
     return r
 }
 
-sra :: proc(self: ^CPU, value: u8) -> u8 {
+sra :: #force_inline proc(self: ^CPU, value: u8) -> u8 {
     c := value & 0b0000_0001 == 0b0000_0001
     b7 := value & 0b1000_0000
     r := value >> 1 | b7

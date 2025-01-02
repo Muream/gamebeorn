@@ -92,6 +92,15 @@ reset_flags :: proc(self: ^CPU) {
     self.f = 0
 }
 
+get_af :: proc(self: ^CPU) -> u16 {
+    return (cast(u16)self.a << 8) | cast(u16)self.f
+}
+
+set_af :: proc(self: ^CPU, value: u16) {
+    self.a = cast(u8)(value >> 8)
+    self.f = cast(u8)(value & 0xFF)
+}
+
 get_bc :: proc(self: ^CPU) -> u16 {
     return (cast(u16)self.b << 8) | cast(u16)self.c
 }

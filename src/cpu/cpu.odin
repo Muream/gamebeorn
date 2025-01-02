@@ -18,7 +18,12 @@ ImeState :: enum {
 
 init :: proc() -> CPU {
     log.debug("Init CPU")
-    cpu := CPU{{pc = 0x0}, .Disabled}
+    cpu := CPU{{}, .Disabled}
+    set_af(&cpu, 0x01B0)
+    set_bc(&cpu, 0x0013)
+    set_de(&cpu, 0x00d8)
+    set_hl(&cpu, 0x014D)
+    cpu.sp = 0xFFFE
     return cpu
 }
 
@@ -37,7 +42,13 @@ next_word :: proc(self: ^CPU, mem: ^memory.Memory) -> u16 {
 
 
 step :: proc(self: ^CPU, mem: ^memory.Memory) -> uint {
-    return step_unprefixed(self, mem)
+    ret := step_unprefixed(self, mem)
+
+    dbg_update(self, mem)
+    dbg_print(self, mem)
+
+    return ret
+
 }
 
 step_unprefixed :: proc(self: ^CPU, mem: ^memory.Memory) -> uint {
@@ -46,10 +57,11 @@ step_unprefixed :: proc(self: ^CPU, mem: ^memory.Memory) -> uint {
     opcode := next_byte(self, mem)
 
     log.debugf(
-        "PC: 0x%08X, OP: %v\t(0x%02X)",
+        "PC: 0x%04X, FLAGS: %s, OP: (0x%02X) %v\t",
         op_addr,
-        cast(Unprefixed_OpCode)opcode,
+        disassemble_flags(self),
         opcode,
+        disassemble(self, mem, opcode),
     )
 
     if self.ime == .ToEnable {

@@ -7,7 +7,7 @@ import "core:math/bits"
 import "../memory"
 
 // Add the value in r8 plus the carry flag to A.
-adc_a_r8 :: proc(self: ^CPU, mem: ^memory.Memory, register: Register) {
+adc_a_r8 :: #force_inline proc(self: ^CPU, mem: ^memory.Memory, register: Register) {
     a := cast(u16)self.a
     c := cast(u16)get_carry_flag(self)
     v := cast(u16)get_r8(self, register)^
@@ -21,7 +21,7 @@ adc_a_r8 :: proc(self: ^CPU, mem: ^memory.Memory, register: Register) {
     self.a = cast(u8)r
 }
 
-adc_a_hl :: proc(self: ^CPU, mem: ^memory.Memory) {
+adc_a_hl :: #force_inline proc(self: ^CPU, mem: ^memory.Memory) {
     a := cast(u16)self.a
     c := cast(u16)get_carry_flag(self)
 
@@ -37,7 +37,7 @@ adc_a_hl :: proc(self: ^CPU, mem: ^memory.Memory) {
 
     self.a = cast(u8)r
 }
-adc_a_n8 :: proc(self: ^CPU, mem: ^memory.Memory) {
+adc_a_n8 :: #force_inline proc(self: ^CPU, mem: ^memory.Memory) {
     a := cast(u16)self.a
     c := cast(u16)get_carry_flag(self)
     v := cast(u16)next_byte(self, mem)
@@ -51,7 +51,7 @@ adc_a_n8 :: proc(self: ^CPU, mem: ^memory.Memory) {
     self.a = cast(u8)r
 }
 
-add_a_r8 :: proc(self: ^CPU, mem: ^memory.Memory, register: Register) {
+add_a_r8 :: #force_inline proc(self: ^CPU, mem: ^memory.Memory, register: Register) {
     reg := get_r8(self, register)
 
     res, carry := bits.overflowing_add(self.a, reg^)
@@ -66,7 +66,7 @@ add_a_r8 :: proc(self: ^CPU, mem: ^memory.Memory, register: Register) {
     set_carry_flag(self, carry)
 }
 
-add_a_hl :: proc(self: ^CPU, mem: ^memory.Memory) {
+add_a_hl :: #force_inline proc(self: ^CPU, mem: ^memory.Memory) {
     addr := get_hl(self)
     value := memory.read(mem, addr)
 
@@ -82,7 +82,7 @@ add_a_hl :: proc(self: ^CPU, mem: ^memory.Memory) {
     set_carry_flag(self, carry)
 }
 
-add_a_n8 :: proc(self: ^CPU, mem: ^memory.Memory) {
+add_a_n8 :: #force_inline proc(self: ^CPU, mem: ^memory.Memory) {
     v := next_byte(self, mem)
 
     res, carry := bits.overflowing_add(self.a, v)
@@ -97,7 +97,7 @@ add_a_n8 :: proc(self: ^CPU, mem: ^memory.Memory) {
     set_carry_flag(self, carry)
 }
 
-and_a_r8 :: proc(self: ^CPU, mem: ^memory.Memory, register: Register) {
+and_a_r8 :: #force_inline proc(self: ^CPU, mem: ^memory.Memory, register: Register) {
     v := get_r8(self, register)^
 
     self.a &= v
@@ -108,7 +108,7 @@ and_a_r8 :: proc(self: ^CPU, mem: ^memory.Memory, register: Register) {
     set_carry_flag(self, false)
 }
 
-and_a_hl :: proc(self: ^CPU, mem: ^memory.Memory) {
+and_a_hl :: #force_inline proc(self: ^CPU, mem: ^memory.Memory) {
     v := memory.read(mem, get_hl(self))
 
     self.a &= v
@@ -119,7 +119,7 @@ and_a_hl :: proc(self: ^CPU, mem: ^memory.Memory) {
     set_carry_flag(self, false)
 }
 
-and_a_n8 :: proc(self: ^CPU, mem: ^memory.Memory) {
+and_a_n8 :: #force_inline proc(self: ^CPU, mem: ^memory.Memory) {
     v := next_byte(self, mem)
 
     self.a &= v
@@ -130,7 +130,7 @@ and_a_n8 :: proc(self: ^CPU, mem: ^memory.Memory) {
     set_carry_flag(self, false)
 }
 
-cp_a_r8 :: proc(self: ^CPU, mem: ^memory.Memory, register: Register) {
+cp_a_r8 :: #force_inline proc(self: ^CPU, mem: ^memory.Memory, register: Register) {
     v := get_r8(self, register)^
 
     res, carry := bits.overflowing_sub(self.a, v)
@@ -143,7 +143,7 @@ cp_a_r8 :: proc(self: ^CPU, mem: ^memory.Memory, register: Register) {
     set_carry_flag(self, carry)
 }
 
-cp_a_hl :: proc(self: ^CPU, mem: ^memory.Memory) {
+cp_a_hl :: #force_inline proc(self: ^CPU, mem: ^memory.Memory) {
     v := memory.read(mem, get_hl(self))
 
     res, carry := bits.overflowing_sub(self.a, v)
@@ -156,7 +156,7 @@ cp_a_hl :: proc(self: ^CPU, mem: ^memory.Memory) {
     set_carry_flag(self, carry)
 }
 
-cp_a_n8 :: proc(self: ^CPU, mem: ^memory.Memory) {
+cp_a_n8 :: #force_inline proc(self: ^CPU, mem: ^memory.Memory) {
     v := next_byte(self, mem)
 
     res, carry := bits.overflowing_sub(self.a, v)
@@ -170,7 +170,7 @@ cp_a_n8 :: proc(self: ^CPU, mem: ^memory.Memory) {
 }
 
 // Decrement value in register r8 by 1.
-dec_r8 :: proc(self: ^CPU, mem: ^memory.Memory, register: Register) {
+dec_r8 :: #force_inline proc(self: ^CPU, mem: ^memory.Memory, register: Register) {
     reg := get_r8(self, register)
 
     res, carry := bits.overflowing_sub(reg^, 1)
@@ -183,7 +183,7 @@ dec_r8 :: proc(self: ^CPU, mem: ^memory.Memory, register: Register) {
     set_half_carry_flag(self, half_carry)
 }
 
-dec_hl :: proc(self: ^CPU, mem: ^memory.Memory) {
+dec_hl :: #force_inline proc(self: ^CPU, mem: ^memory.Memory) {
     addr := get_hl(self)
 
     value := memory.read(mem, addr)
@@ -200,7 +200,7 @@ dec_hl :: proc(self: ^CPU, mem: ^memory.Memory) {
 
 
 // Increment value in register r8 by 1.
-inc_r8 :: proc(self: ^CPU, mem: ^memory.Memory, register: Register) {
+inc_r8 :: #force_inline proc(self: ^CPU, mem: ^memory.Memory, register: Register) {
     reg := get_r8(self, register)
 
     res, carry := bits.overflowing_add(reg^, 1)
@@ -214,7 +214,7 @@ inc_r8 :: proc(self: ^CPU, mem: ^memory.Memory, register: Register) {
     set_half_carry_flag(self, half_carry)
 }
 
-inc_hl :: proc(self: ^CPU, mem: ^memory.Memory) {
+inc_hl :: #force_inline proc(self: ^CPU, mem: ^memory.Memory) {
     addr := get_hl(self)
 
     value := memory.read(mem, addr)
@@ -229,7 +229,7 @@ inc_hl :: proc(self: ^CPU, mem: ^memory.Memory) {
     set_half_carry_flag(self, half_carry)
 }
 
-or_a_r8 :: proc(self: ^CPU, mem: ^memory.Memory, register: Register) {
+or_a_r8 :: #force_inline proc(self: ^CPU, mem: ^memory.Memory, register: Register) {
     v := get_r8(self, register)^
 
     self.a |= v
@@ -240,7 +240,7 @@ or_a_r8 :: proc(self: ^CPU, mem: ^memory.Memory, register: Register) {
     set_carry_flag(self, false)
 }
 
-or_a_hl :: proc(self: ^CPU, mem: ^memory.Memory) {
+or_a_hl :: #force_inline proc(self: ^CPU, mem: ^memory.Memory) {
     v := memory.read(mem, get_hl(self))
 
     self.a |= v
@@ -250,7 +250,7 @@ or_a_hl :: proc(self: ^CPU, mem: ^memory.Memory) {
     set_half_carry_flag(self, false)
     set_carry_flag(self, false)
 }
-or_a_n8 :: proc(self: ^CPU, mem: ^memory.Memory) {
+or_a_n8 :: #force_inline proc(self: ^CPU, mem: ^memory.Memory) {
     v := next_byte(self, mem)
 
     self.a |= v
@@ -261,7 +261,7 @@ or_a_n8 :: proc(self: ^CPU, mem: ^memory.Memory) {
     set_carry_flag(self, false)
 }
 
-sbc_a_r8 :: proc(self: ^CPU, mem: ^memory.Memory, register: Register) {
+sbc_a_r8 :: #force_inline proc(self: ^CPU, mem: ^memory.Memory, register: Register) {
     a := cast(u16)self.a
     c := cast(u16)get_carry_flag(self)
     v := cast(u16)get_r8(self, register)^
@@ -275,7 +275,7 @@ sbc_a_r8 :: proc(self: ^CPU, mem: ^memory.Memory, register: Register) {
     self.a = cast(u8)r
 }
 
-sbc_a_hl :: proc(self: ^CPU, mem: ^memory.Memory) {
+sbc_a_hl :: #force_inline proc(self: ^CPU, mem: ^memory.Memory) {
     a := cast(u16)self.a
     c := cast(u16)get_carry_flag(self)
 
@@ -292,7 +292,7 @@ sbc_a_hl :: proc(self: ^CPU, mem: ^memory.Memory) {
     self.a = cast(u8)r
 }
 
-sbc_a_n8 :: proc(self: ^CPU, mem: ^memory.Memory) {
+sbc_a_n8 :: #force_inline proc(self: ^CPU, mem: ^memory.Memory) {
     a := cast(u16)self.a
     c := cast(u16)get_carry_flag(self)
     v := cast(u16)next_byte(self, mem)
@@ -306,7 +306,7 @@ sbc_a_n8 :: proc(self: ^CPU, mem: ^memory.Memory) {
     self.a = cast(u8)r
 }
 
-sub_a_n8 :: proc(self: ^CPU, mem: ^memory.Memory) {
+sub_a_n8 :: #force_inline proc(self: ^CPU, mem: ^memory.Memory) {
     v := next_byte(self, mem)
 
     res, carry := bits.overflowing_sub(self.a, v)
@@ -321,7 +321,7 @@ sub_a_n8 :: proc(self: ^CPU, mem: ^memory.Memory) {
     set_carry_flag(self, carry)
 }
 
-sub_a_r8 :: proc(self: ^CPU, mem: ^memory.Memory, register: Register) {
+sub_a_r8 :: #force_inline proc(self: ^CPU, mem: ^memory.Memory, register: Register) {
     reg := get_r8(self, register)
 
     res, carry := bits.overflowing_sub(self.a, reg^)
@@ -336,7 +336,7 @@ sub_a_r8 :: proc(self: ^CPU, mem: ^memory.Memory, register: Register) {
     set_carry_flag(self, carry)
 }
 
-sub_a_hl :: proc(self: ^CPU, mem: ^memory.Memory) {
+sub_a_hl :: #force_inline proc(self: ^CPU, mem: ^memory.Memory) {
     v := memory.read(mem, get_hl(self))
 
     res, carry := bits.overflowing_sub(self.a, v)
@@ -351,7 +351,7 @@ sub_a_hl :: proc(self: ^CPU, mem: ^memory.Memory) {
     set_carry_flag(self, carry)
 }
 
-xor_a_r8 :: proc(self: ^CPU, mem: ^memory.Memory, register: Register) {
+xor_a_r8 :: #force_inline proc(self: ^CPU, mem: ^memory.Memory, register: Register) {
     v := get_r8(self, register)^
 
     self.a ~= v
@@ -362,7 +362,7 @@ xor_a_r8 :: proc(self: ^CPU, mem: ^memory.Memory, register: Register) {
     set_carry_flag(self, false)
 }
 
-xor_a_hl :: proc(self: ^CPU, mem: ^memory.Memory) {
+xor_a_hl :: #force_inline proc(self: ^CPU, mem: ^memory.Memory) {
     v := memory.read(mem, get_hl(self))
 
     self.a ~= v
@@ -373,7 +373,7 @@ xor_a_hl :: proc(self: ^CPU, mem: ^memory.Memory) {
     set_carry_flag(self, false)
 }
 
-xor_a_n8 :: proc(self: ^CPU, mem: ^memory.Memory) {
+xor_a_n8 :: #force_inline proc(self: ^CPU, mem: ^memory.Memory) {
     v := next_byte(self, mem)
 
     self.a ~= v

@@ -5,7 +5,7 @@ import "core:math/bits"
 import "../memory"
 
 // Increment value in register r16 by 1.
-inc_r16 :: proc(self: ^CPU, mem: ^memory.Memory, register: Register) {
+inc_r16 :: #force_inline proc(self: ^CPU, mem: ^memory.Memory, register: Register) {
     #partial switch register {
     case .BC:
         val := get_bc(self)
@@ -22,7 +22,7 @@ inc_r16 :: proc(self: ^CPU, mem: ^memory.Memory, register: Register) {
 }
 
 // Decrement value in register r16 by 1.
-dec_r16 :: proc(self: ^CPU, mem: ^memory.Memory, register: Register) {
+dec_r16 :: #force_inline proc(self: ^CPU, mem: ^memory.Memory, register: Register) {
     #partial switch register {
     case .BC:
         val := get_bc(self)
@@ -38,7 +38,12 @@ dec_r16 :: proc(self: ^CPU, mem: ^memory.Memory, register: Register) {
     }
 }
 
-add_r16_r16 :: proc(self: ^CPU, mem: ^memory.Memory, r1: Register, r2: Register) {
+add_r16_r16 :: #force_inline proc(
+    self: ^CPU,
+    mem: ^memory.Memory,
+    r1: Register,
+    r2: Register,
+) {
 
     v1: u16
     #partial switch r1 {

@@ -5,9 +5,9 @@ import "core:math/bits"
 
 import "../memory"
 
-add_hl_sp :: proc() {}
+add_hl_sp :: #force_inline proc() {}
 
-add_sp_e8 :: proc(self: ^CPU, mem: ^memory.Memory) {
+add_sp_e8 :: #force_inline proc(self: ^CPU, mem: ^memory.Memory) {
     value := cast(u16)cast(i16)transmute(i8)next_byte(self, mem)
     result, _ := bits.overflowing_add(self.sp, value)
 
@@ -26,11 +26,11 @@ add_sp_e8 :: proc(self: ^CPU, mem: ^memory.Memory) {
     self.sp = result
 }
 
-dec_sp :: proc() {}
-inc_sp :: proc() {}
-ld_sp_n16 :: proc() {}
+dec_sp :: #force_inline proc() {}
+inc_sp :: #force_inline proc() {}
+ld_sp_n16 :: #force_inline proc() {}
 
-ld_n16_sp :: proc(self: ^CPU, mem: ^memory.Memory) {
+ld_n16_sp :: #force_inline proc(self: ^CPU, mem: ^memory.Memory) {
     // Store SP & $FF at address n16 and SP >> 8 at address n16 + 1.
     addr := next_word(self, mem)
     a := cast(u8)(self.sp & 0xFF)
@@ -39,7 +39,7 @@ ld_n16_sp :: proc(self: ^CPU, mem: ^memory.Memory) {
     memory.write(mem, addr + 1, b)
 }
 
-ld_hl_sp_e8 :: proc(self: ^CPU, mem: ^memory.Memory) {
+ld_hl_sp_e8 :: #force_inline proc(self: ^CPU, mem: ^memory.Memory) {
     value := cast(u16)cast(i16)transmute(i8)next_byte(self, mem)
     result, _ := bits.overflowing_add(self.sp, value)
 
@@ -58,11 +58,11 @@ ld_hl_sp_e8 :: proc(self: ^CPU, mem: ^memory.Memory) {
     set_hl(self, result)
 }
 
-ld_sp_hl :: proc(self: ^CPU, mem: ^memory.Memory) {
+ld_sp_hl :: #force_inline proc(self: ^CPU, mem: ^memory.Memory) {
     self.sp = get_hl(self)
 }
 
-pop_af :: proc(self: ^CPU, mem: ^memory.Memory) {
+pop_af :: #force_inline proc(self: ^CPU, mem: ^memory.Memory) {
     self.f = memory.read(mem, self.sp) & 0b1111_0000
     self.sp += 1
 
@@ -71,7 +71,7 @@ pop_af :: proc(self: ^CPU, mem: ^memory.Memory) {
 }
 
 
-pop_r16 :: proc(self: ^CPU, mem: ^memory.Memory, register: Register) {
+pop_r16 :: #force_inline proc(self: ^CPU, mem: ^memory.Memory, register: Register) {
     // ld LOW(r16), [sp] ; C, E or L
     // inc sp
     // ld HIGH(r16), [sp] ; B, D or H
@@ -100,7 +100,7 @@ pop_r16 :: proc(self: ^CPU, mem: ^memory.Memory, register: Register) {
     self.sp += 1
 }
 
-push_af :: proc(self: ^CPU, mem: ^memory.Memory) {
+push_af :: #force_inline proc(self: ^CPU, mem: ^memory.Memory) {
     // dec sp
     // ld [sp], a
     // dec sp
@@ -113,7 +113,7 @@ push_af :: proc(self: ^CPU, mem: ^memory.Memory) {
     memory.write(mem, self.sp, self.f)
 
 }
-push_r16 :: proc(self: ^CPU, mem: ^memory.Memory, register: Register) {
+push_r16 :: #force_inline proc(self: ^CPU, mem: ^memory.Memory, register: Register) {
     // dec sp
     // ld [sp], HIGH(r16) ; B, D or H
     // dec sp

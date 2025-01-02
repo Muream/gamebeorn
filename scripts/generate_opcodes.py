@@ -12,9 +12,6 @@ text += "package main\n"
 text += "OpCode :: enum u8 {\n"
 
 for name, instruction in instructions["cbprefixed"].items():
-    # 0xC0 is the last implemented instruction at the time of writing this script
-    # if int(name, 16) < 0xC0:
-    #     continue
     if "ILLEGAL" in instruction["mnemonic"]:
         continue
     text += f'    {instruction["mnemonic"]}'
