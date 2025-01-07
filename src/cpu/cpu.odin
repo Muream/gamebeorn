@@ -61,7 +61,7 @@ step_unprefixed :: proc(self: ^CPU, mem: ^memory.Memory) -> uint {
         op_addr,
         disassemble_flags(self),
         opcode,
-        disassemble(self, mem, opcode),
+        disassemble(self, mem, Unprefixed_OpCode(opcode)),
     )
 
     if self.ime == .ToEnable {
@@ -1347,10 +1347,11 @@ step_prefixed :: proc(self: ^CPU, mem: ^memory.Memory) -> uint {
     opcode := next_byte(self, mem)
 
     log.debugf(
-        "PC: 0x%08X, OP:   %v\t(0x%02X)",
+        "PC: 0x%04X, FLAGS: %s, OP: (0x%02X) %v\t",
         op_addr,
-        cast(Prefixed_OpCode)opcode,
+        disassemble_flags(self),
         opcode,
+        disassemble(self, mem, Prefixed_OpCode(opcode)),
     )
 
     switch opcode {

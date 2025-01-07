@@ -19,7 +19,7 @@ NINTENDO_LOGO := [?]u8{
 init :: proc() -> Memory {
     log.debug("Init Memory")
     mem := make([]u8, 64 * 1024)
-    // copy(mem[0x8000:], NINTENDO_LOGO[:])
+    copy(mem[0x8000:], NINTENDO_LOGO[:])
     // AF=$01B0
     //   BC=$0013
     //   DE=$00D8

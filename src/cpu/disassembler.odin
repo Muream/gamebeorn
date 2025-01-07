@@ -23,8 +23,25 @@ disassemble_flags :: proc(self: ^CPU) -> string {
     return fmt.aprintf("%v %v %v %v", z, n, h, c)
 }
 
-disassemble :: proc(self: ^CPU, mem: ^memory.Memory, instruction: u8) -> string {
-    opcode := cast(Unprefixed_OpCode)instruction
+disassemble :: proc(self: ^CPU, mem: ^memory.Memory, instruction: OpCode) -> string {
+    switch _ in instruction {
+    case Unprefixed_OpCode:
+        return disassemble_unprefixed(self, mem, instruction.(Unprefixed_OpCode))
+    case Prefixed_OpCode:
+        return disassemble_prefixed(self, mem, instruction.(Prefixed_OpCode))
+    case:
+        return "INVALID"
+    }
+}
+
+
+disassemble_unprefixed :: proc(
+    self: ^CPU,
+    mem: ^memory.Memory,
+    instruction: Unprefixed_OpCode,
+) -> string {
+
+    opcode := instruction
     #partial switch opcode {
     case .NOP:
         return fmt.aprintf("%v ", opcode)
@@ -561,4 +578,12 @@ disassemble :: proc(self: ^CPU, mem: ^memory.Memory, instruction: u8) -> string 
         return fmt.aprintf("%v ", opcode)
     }
     return "INVALID"
+}
+
+disassemble_prefixed :: proc(
+    self: ^CPU,
+    mem: ^memory.Memory,
+    instruction: Prefixed_OpCode,
+) -> string {
+    return fmt.aprintf("%v ", instruction)
 }

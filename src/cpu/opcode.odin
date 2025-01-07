@@ -1,5 +1,10 @@
 package cpu
 
+OpCode :: union {
+    Unprefixed_OpCode,
+    Prefixed_OpCode,
+}
+
 Unprefixed_OpCode :: enum u8 {
     NOP          = 0x00,
     LD_BC_n16    = 0x01,

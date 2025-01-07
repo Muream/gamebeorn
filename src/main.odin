@@ -27,7 +27,7 @@ BORDER :: 15
 palette := [?]rl.Color{rl.BLACK, rl.DARKGRAY, rl.GRAY, rl.WHITE}
 
 main :: proc() {
-    context.logger = log.create_console_logger(opt = {.Level, .Terminal_Color, .Line})
+    context.logger = log.create_console_logger(opt = {.Level, .Terminal_Color})
 
     // rl.SetConfigFlags({.VSYNC_HINT})
 
@@ -44,24 +44,24 @@ main :: proc() {
 
     emu := emulator.init()
 
-    // rom_path := `roms\dmg-acid2\dmg-acid2.gb`
-    // rom_path := `roms\GB\Japan\Tetris (Japan) (En)\Tetris (Japan) (En).gb`
-    // rom_path := `roms\blargg\cpu_instrs\individual\01-special.gb`
-    rom_path := `roms\blargg\cpu_instrs\cpu_instrs.gb`
-    rom, rom_ok := os.read_entire_file(rom_path)
-    if !rom_ok {
-        panic("Could not read ROM")
-    }
-    copy(emu.gb.mem.mem[:], rom[:])
-    emu.gb.cpu.pc = 0x0100
-
-    // boot_rom_path := `roms\dmg_boot.gb`
-    // boot_rom, boot_rom_ok := os.read_entire_file(boot_rom_path)
-    // if !boot_rom_ok {
-    //     panic("Could not read Boot ROM")
+    // // rom_path := `roms\dmg-acid2\dmg-acid2.gb`
+    // // rom_path := `roms\GB\Japan\Tetris (Japan) (En)\Tetris (Japan) (En).gb`
+    // // rom_path := `roms\blargg\cpu_instrs\individual\01-special.gb`
+    // rom_path := `roms\blargg\cpu_instrs\cpu_instrs.gb`
+    // rom, rom_ok := os.read_entire_file(rom_path)
+    // if !rom_ok {
+    //     panic("Could not read ROM")
     // }
-    // copy(emu.gb.mem.mem[:], boot_rom[:])
-    // emu.gb.cpu.pc = 0x0000
+    // copy(emu.gb.mem.mem[:], rom[:])
+    // emu.gb.cpu.pc = 0x0100
+
+    boot_rom_path := `roms\dmg_boot.gb`
+    boot_rom, boot_rom_ok := os.read_entire_file(boot_rom_path)
+    if !boot_rom_ok {
+        panic("Could not read Boot ROM")
+    }
+    copy(emu.gb.mem.mem[:], boot_rom[:])
+    emu.gb.cpu.pc = 0x0000
 
     emu.state = .Paused
     for !rl.WindowShouldClose() {
