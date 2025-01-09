@@ -29,8 +29,24 @@ palette := [?]rl.Color{rl.BLACK, rl.DARKGRAY, rl.GRAY, rl.WHITE}
 main :: proc() {
     context.logger = log.create_console_logger(opt = {.Level, .Terminal_Color})
 
-    // rl.SetConfigFlags({.VSYNC_HINT})
+    // mode: int = 0
+    // when ODIN_OS == .Linux || ODIN_OS == .Darwin {
+    //     mode = os.S_IRUSR | os.S_IWUSR | os.S_IRGRP | os.S_IROTH
+    // }
+    // logh, logh_err := os.open("log.txt", (os.O_CREATE | os.O_TRUNC | os.O_RDWR), mode)
 
+    // if logh_err == os.ERROR_NONE {
+    //     os.stdout = logh
+    //     os.stderr = logh
+    // }
+    // // ? log.create_file_logger(logh, opt = {}) \
+    // logger := logh_err == os.ERROR_NONE ? log.create_multi_logger(
+    //         log.create_file_logger(logh, opt = {}),
+    //         // log.create_console_logger(opt = {}),
+    //     ) : log.create_console_logger()
+    // context.logger = logger
+
+    // rl.SetConfigFlags({.VSYNC_HINT})
     width: i32 = TILES_PER_ROW * (PIXEL_SIZE * 8 + GAP) + BORDER * 2
     height: i32 = COLUMN_COUNT * (PIXEL_SIZE * 8 + GAP) + BORDER * 2
     rl.InitWindow(width, height, "GameBeorn")
@@ -44,26 +60,54 @@ main :: proc() {
 
     emu := emulator.init()
 
-    // // rom_path := `roms\dmg-acid2\dmg-acid2.gb`
-    // // rom_path := `roms\GB\Japan\Tetris (Japan) (En)\Tetris (Japan) (En).gb`
-    // // rom_path := `roms\blargg\cpu_instrs\individual\01-special.gb`
-    // rom_path := `roms\blargg\cpu_instrs\cpu_instrs.gb`
-    // rom, rom_ok := os.read_entire_file(rom_path)
-    // if !rom_ok {
-    //     panic("Could not read ROM")
-    // }
-    // copy(emu.gb.mem.mem[:], rom[:])
-    // emu.gb.cpu.pc = 0x0100
+    // rom_path := `roms\dmg-acid2\dmg-acid2.gb`
+    // rom_path := `roms\GB\Japan\Tetris (Japan) (En)\Tetris (Japan) (En).gb`
 
-    boot_rom_path := `roms\dmg_boot.gb`
-    boot_rom, boot_rom_ok := os.read_entire_file(boot_rom_path)
-    if !boot_rom_ok {
-        panic("Could not read Boot ROM")
+    // rom_path := `roms\blargg\cpu_instrs\individual\01-special.gb`
+    // rom_path := `roms\blargg\cpu_instrs\individual\02-interrupts.gb`
+    rom_path := `roms\blargg\cpu_instrs\individual\03-op sp,hl.gb`
+    // rom_path := `roms\blargg\cpu_instrs\individual\04-op r,imm.gb`
+    // rom_path := `roms\blargg\cpu_instrs\individual\05-op rp.gb`
+    // rom_path := `roms\blargg\cpu_instrs\individual\06-ld r,r.gb`
+    // rom_path := `roms\blargg\cpu_instrs\individual\07-jr,jp,call,ret,rst.gb`
+    // rom_path := `roms\blargg\cpu_instrs\individual\08-misc instrs.gb`
+    // rom_path := `roms\blargg\cpu_instrs\individual\09-op r,r.gb`
+    // rom_path := `roms\blargg\cpu_instrs\individual\10-bit ops.gb`
+    // rom_path := `roms\blargg\cpu_instrs\individual\11-op a,(hl).gb`
+
+    rom, rom_ok := os.read_entire_file_from_filename(rom_path)
+    if !rom_ok {
+        panic("Could not read ROM")
     }
-    copy(emu.gb.mem.mem[:], boot_rom[:])
-    emu.gb.cpu.pc = 0x0000
+    copy(emu.gb.mem.mem[:], rom[:])
 
-    emu.state = .Paused
+    // Preconfigure CPU register for gamedoctor
+    emu.gb.cpu.a = 0x01
+    emu.gb.cpu.f = 0xB0
+    emu.gb.cpu.b = 0x00
+    emu.gb.cpu.c = 0x13
+    emu.gb.cpu.d = 0x00
+    emu.gb.cpu.e = 0xD8
+    emu.gb.cpu.h = 0x01
+    emu.gb.cpu.l = 0x4D
+    emu.gb.cpu.sp = 0xFFFE
+    emu.gb.cpu.pc = 0x0100
+
+    // boot_rom_path := `roms\dmg_boot.gb`
+    // boot_rom, boot_rom_ok := os.read_entire_file(boot_rom_path)
+    // if !boot_rom_ok {
+    //     panic("Could not read Boot ROM")
+    // }
+    // copy(emu.gb.mem.mem[:], boot_rom[:])
+    // emu.gb.cpu.pc = 0x0000
+
+    // memory.write(&emu.gb.mem, 0xFF44, 0x90)
+
+    // for true {
+    //     cpu.step(&emu.gb.cpu, &emu.gb.mem)
+    // }
+
+    emu.state = .Playing
     for !rl.WindowShouldClose() {
         emu.frame_time = rl.GetFrameTime()
         clay.SetLayoutDimensions(

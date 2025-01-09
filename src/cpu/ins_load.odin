@@ -1,5 +1,7 @@
 package cpu
 
+import "core:fmt"
+
 import "../memory"
 
 // Load value n8 into register r8.
@@ -67,9 +69,13 @@ ld_r16_a :: #force_inline proc(self: ^CPU, mem: ^memory.Memory, r1: Register) {
     addr: u16
     #partial switch r1 {
     case .BC:
-        addr := get_bc(self)
+        addr = get_bc(self)
     case .DE:
-        addr := get_de(self)
+        addr = get_de(self)
+    case .HL:
+        addr = get_hl(self)
+    case:
+        fmt.panicf("Invalid Register %v", r1)
     }
     memory.write(mem, addr, self.a)
 }

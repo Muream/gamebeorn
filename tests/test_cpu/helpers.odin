@@ -106,6 +106,24 @@ verify_state :: proc(t: ^testing.T, emu: ^emulator.Emulator, state: State) {
 
     ime: u8 = emu.gb.cpu.ime == .Enabled ? 1 : 0
     testing.expect_value(t, ime, state.ime)
+
+
+    for mem_data in state.ram {
+        addr := cast(u16)mem_data[0]
+
+        expected_val := cast(u8)mem_data[1]
+        val := memory.read(&emu.gb.mem, addr)
+
+        testing.expectf(
+            t,
+            val == expected_val,
+            "Expected val @%v to be %v, got %v",
+            addr,
+            expected_val,
+            val,
+        )
+        // testing.expect_value(t, val, expected_val)
+    }
 }
 
 test_opcode :: proc(t: ^testing.T, opcode: string) {

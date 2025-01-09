@@ -17,49 +17,49 @@ NINTENDO_LOGO := [?]u8{
 // odinfmt: enable
 
 init :: proc() -> Memory {
-    log.debug("Init Memory")
     mem := make([]u8, 64 * 1024)
-    copy(mem[0x8000:], NINTENDO_LOGO[:])
-    // AF=$01B0
-    //   BC=$0013
-    //   DE=$00D8
-    //   HL=$014D
-    //   Stack Pointer=$FFFE
-    mem[0xFF05] = 0x00 // TIMA
-    mem[0xFF06] = 0x00 // TMA
-    mem[0xFF07] = 0x00 // TAC
-    mem[0xFF10] = 0x80 // NR10
-    mem[0xFF11] = 0xBF // NR11
-    mem[0xFF12] = 0xF3 // NR12
-    mem[0xFF14] = 0xBF // NR14
-    mem[0xFF16] = 0x3F // NR21
-    mem[0xFF17] = 0x00 // NR22
-    mem[0xFF19] = 0xBF // NR24
-    mem[0xFF1A] = 0x7F // NR30
-    mem[0xFF1B] = 0xFF // NR31
-    mem[0xFF1C] = 0x9F // NR32
-    mem[0xFF1E] = 0xBF // NR33
-    mem[0xFF20] = 0xFF // NR41
-    mem[0xFF21] = 0x00 // NR42
-    mem[0xFF22] = 0x00 // NR43
-    mem[0xFF23] = 0xBF // NR30
-    mem[0xFF24] = 0x77 // NR50
-    mem[0xFF25] = 0xF3 // NR51
-    mem[0xFF26] = 0xF1 // NR52
-    mem[0xFF40] = 0x91 // LCDC
-    mem[0xFF42] = 0x00 // SCY
-    mem[0xFF43] = 0x00 // SCX
-    mem[0xFF45] = 0x00 // LYC
-    mem[0xFF47] = 0xFC // BGP
-    mem[0xFF48] = 0xFF // OBP0
-    mem[0xFF49] = 0xFF // OBP1
-    mem[0xFF4A] = 0x00 // WY
-    mem[0xFF4B] = 0x00 // WX
-    mem[0xFFFF] = 0x00 // IE
+    // copy(mem[0x8000:], NINTENDO_LOGO[:])
+    // mem[0xFF05] = 0x00 // TIMA
+    // mem[0xFF06] = 0x00 // TMA
+    // mem[0xFF07] = 0x00 // TAC
+    // mem[0xFF10] = 0x80 // NR10
+    // mem[0xFF11] = 0xBF // NR11
+    // mem[0xFF12] = 0xF3 // NR12
+    // mem[0xFF14] = 0xBF // NR14
+    // mem[0xFF16] = 0x3F // NR21
+    // mem[0xFF17] = 0x00 // NR22
+    // mem[0xFF19] = 0xBF // NR24
+    // mem[0xFF1A] = 0x7F // NR30
+    // mem[0xFF1B] = 0xFF // NR31
+    // mem[0xFF1C] = 0x9F // NR32
+    // mem[0xFF1E] = 0xBF // NR33
+    // mem[0xFF20] = 0xFF // NR41
+    // mem[0xFF21] = 0x00 // NR42
+    // mem[0xFF22] = 0x00 // NR43
+    // mem[0xFF23] = 0xBF // NR30
+    // mem[0xFF24] = 0x77 // NR50
+    // mem[0xFF25] = 0xF3 // NR51
+    // mem[0xFF26] = 0xF1 // NR52
+    // mem[0xFF40] = 0x91 // LCDC
+    // mem[0xFF42] = 0x00 // SCY
+    // mem[0xFF43] = 0x00 // SCX
+    // mem[0xFF45] = 0x00 // LYC
+    // mem[0xFF47] = 0xFC // BGP
+    // mem[0xFF48] = 0xFF // OBP0
+    // mem[0xFF49] = 0xFF // OBP1
+    // mem[0xFF4A] = 0x00 // WY
+    // mem[0xFF4B] = 0x00 // WX
+    // mem[0xFFFF] = 0x00 // IE
     return {mem}
 }
 
 read :: proc(self: ^Memory, address: u16) -> u8 {
+    // FIXME: This is temporarily needed until the LCD is properly implemented
+    // 0xFF44 is the LY Register and 0x90 indicates that the screen is done drawing... I think?
+    if address == 0xFF44 {
+        return 0x90
+    }
+
     if cast(uint)address >= len(self.mem) {
         fmt.panicf("Invalid write @ %X", address)
     }

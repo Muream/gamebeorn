@@ -18,6 +18,5 @@ EmuState :: enum {
 }
 
 init :: proc() -> Emulator {
-    log.debug("Init Emulator")
     return Emulator{gameboy.init(), .Paused, 0}
 }

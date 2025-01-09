@@ -123,14 +123,14 @@ push_r16 :: #force_inline proc(self: ^CPU, mem: ^memory.Memory, register: Regist
     high_reg: ^u8
     #partial switch register {
     case .BC:
-        low_reg = &self.c
-        high_reg = &self.b
+        low_reg = &self.b
+        high_reg = &self.c
     case .DE:
-        low_reg = &self.e
-        high_reg = &self.d
+        low_reg = &self.d
+        high_reg = &self.e
     case .HL:
-        low_reg = &self.l
-        high_reg = &self.h
+        low_reg = &self.h
+        high_reg = &self.l
     case:
         fmt.panicf("Invalid Register %v", register)
     }

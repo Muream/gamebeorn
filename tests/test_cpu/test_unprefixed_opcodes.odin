@@ -119,9 +119,8 @@ opcode_0x25 :: proc(t: ^testing.T) {test_opcode(t, "25")}
 @(test)
 opcode_0x26 :: proc(t: ^testing.T) {test_opcode(t, "26")}
 
-// TODO:
-// @(test)
-// opcode_0x27 :: proc(t: ^testing.T) {test_opcode(t, "27")}
+@(test)
+opcode_0x27 :: proc(t: ^testing.T) {test_opcode(t, "27")}
 
 @(test)
 opcode_0x28 :: proc(t: ^testing.T) {test_opcode(t, "28")}
@@ -168,13 +167,11 @@ opcode_0x35 :: proc(t: ^testing.T) {test_opcode(t, "35")}
 @(test)
 opcode_0x36 :: proc(t: ^testing.T) {test_opcode(t, "36")}
 
-// TODO:
-// @(test)
-// opcode_0x37 :: proc(t: ^testing.T) {test_opcode(t, "37")}
+@(test)
+opcode_0x37 :: proc(t: ^testing.T) {test_opcode(t, "37")}
 
-// TODO:
-// @(test)
-// opcode_0x38 :: proc(t: ^testing.T) {test_opcode(t, "38")}
+@(test)
+opcode_0x38 :: proc(t: ^testing.T) {test_opcode(t, "38")}
 
 @(test)
 opcode_0x39 :: proc(t: ^testing.T) {test_opcode(t, "39")}
@@ -615,7 +612,7 @@ opcode_0xc9 :: proc(t: ^testing.T) {test_opcode(t, "c9")}
 @(test)
 opcode_0xca :: proc(t: ^testing.T) {test_opcode(t, "ca")}
 
-// TODO:
+// There's no file for CB as it's just the prefix for other Opcodes
 // @(test)
 // opcode_0xcb :: proc(t: ^testing.T) {test_opcode(t, "cb")}
 
@@ -672,7 +669,7 @@ opcode_0xda :: proc(t: ^testing.T) {test_opcode(t, "da")}
 @(test)
 opcode_0xdc :: proc(t: ^testing.T) {test_opcode(t, "dc")}
 
-// TODO:
+// ILLEGAL
 // @(test)
 // opcode_0xdd :: proc(t: ^testing.T) {test_opcode(t, "dd")}
 

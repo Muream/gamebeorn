@@ -13,10 +13,7 @@ GameBoy :: struct {
 }
 
 init :: proc() -> GameBoy {
-    log.debug("Init GameBoy")
-
     c := cpu.init()
     m := memory.init()
-
     return {c, m}
 }

@@ -17,13 +17,7 @@ ImeState :: enum {
 }
 
 init :: proc() -> CPU {
-    log.debug("Init CPU")
     cpu := CPU{{}, .Disabled}
-    set_af(&cpu, 0x01B0)
-    set_bc(&cpu, 0x0013)
-    set_de(&cpu, 0x00d8)
-    set_hl(&cpu, 0x014D)
-    cpu.sp = 0xFFFE
     return cpu
 }
 
@@ -42,6 +36,26 @@ next_word :: proc(self: ^CPU, mem: ^memory.Memory) -> u16 {
 
 
 step :: proc(self: ^CPU, mem: ^memory.Memory) -> uint {
+
+
+    log.debugf(
+        "A:%02X F:%02X B:%02X C:%02X D:%02X E:%02X H:%02X L:%02X SP:%04X PC:%04X PCMEM:%02X,%02X,%02X,%02X",
+        self.a,
+        self.f,
+        self.b,
+        self.c,
+        self.d,
+        self.e,
+        self.h,
+        self.l,
+        self.sp,
+        self.pc,
+        memory.read(mem, self.regs.pc + 0),
+        memory.read(mem, self.regs.pc + 1),
+        memory.read(mem, self.regs.pc + 2),
+        memory.read(mem, self.regs.pc + 3),
+    )
+
     ret := step_unprefixed(self, mem)
 
     dbg_update(self, mem)
@@ -56,13 +70,14 @@ step_unprefixed :: proc(self: ^CPU, mem: ^memory.Memory) -> uint {
     op_addr := self.regs.pc
     opcode := next_byte(self, mem)
 
-    log.debugf(
-        "PC: 0x%04X, FLAGS: %s, OP: (0x%02X) %v\t",
-        op_addr,
-        disassemble_flags(self),
-        opcode,
-        disassemble(self, mem, Unprefixed_OpCode(opcode)),
-    )
+
+    // log.debugf(
+    //     "PC: 0x%04X, FLAGS: %s, OP: (0x%02X) %v\t",
+    //     op_addr,
+    //     disassemble_flags(self),
+    //     opcode,
+    //     disassemble(self, mem, Unprefixed_OpCode(opcode)),
+    // )
 
     if self.ime == .ToEnable {
         self.ime = .Enabled
@@ -266,9 +281,8 @@ step_unprefixed :: proc(self: ^CPU, mem: ^memory.Memory) -> uint {
 
     // DAA
     case 0x27:
-        // daa()
-        // return 1
-        panic("DAA Not Implemented")
+        daa(self, mem)
+        return 1
 
     // JR Z, e8
     case 0x28:
@@ -347,10 +361,12 @@ step_unprefixed :: proc(self: ^CPU, mem: ^memory.Memory) -> uint {
 
     // SCF
     case 0x37:
+        scf(self)
         return 1
 
     // JR C, e8
     case 0x38:
+        jr_cc_n16(self, mem, .C)
         return 1
 
     // ADD HL, SP
@@ -1346,13 +1362,13 @@ step_prefixed :: proc(self: ^CPU, mem: ^memory.Memory) -> uint {
     op_addr := self.regs.pc
     opcode := next_byte(self, mem)
 
-    log.debugf(
-        "PC: 0x%04X, FLAGS: %s, OP: (0x%02X) %v\t",
-        op_addr,
-        disassemble_flags(self),
-        opcode,
-        disassemble(self, mem, Prefixed_OpCode(opcode)),
-    )
+    // log.debugf(
+    //     "PC: 0x%04X, FLAGS: %s, OP: (0x%02X) %v\t",
+    //     op_addr,
+    //     disassemble_flags(self),
+    //     opcode,
+    //     disassemble(self, mem, Prefixed_OpCode(opcode)),
+    // )
 
     switch opcode {
 

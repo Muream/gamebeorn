@@ -13,11 +13,12 @@ tasks:
 
   run:
     cmds:
-      - odin run src/ -out=build/beorn.exe
+      - odin run src/ -out=build/beorn.exe -debug
     silent: true
 
   test:
     cmds:
+      # - cmd: odin test tests/ -out=build/beorn-test.exe -all-packages -define:ODIN_TEST_PROGRESS_WIDTH=0 -define:ODIN_TEST_SHORT_LOGS=true -define:ODIN_TEST_NAMES=test_cpu.opcode_0xc7
       - cmd: odin test tests/ -out=build/beorn-test.exe -all-packages -define:ODIN_TEST_PROGRESS_WIDTH=0 -define:ODIN_TEST_SHORT_LOGS=true
         ignore_error: true
     silent: true

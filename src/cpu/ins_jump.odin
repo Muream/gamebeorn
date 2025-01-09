@@ -1,9 +1,11 @@
 package cpu
 
+import "core:fmt"
+
 import "../memory"
 
 call_n16 :: #force_inline proc(self: ^CPU, mem: ^memory.Memory) {
-    return_addr := self.pc + 1
+    return_addr := self.pc + 2
 
     self.sp -= 1
     memory.write(mem, self.sp, cast(u8)(return_addr >> 8))
@@ -105,7 +107,7 @@ reti :: #force_inline proc(self: ^CPU, mem: ^memory.Memory) {
 }
 
 rst_vec :: #force_inline proc(self: ^CPU, mem: ^memory.Memory, addr: u16) {
-    return_addr := self.pc + 1
+    return_addr := self.pc
 
     self.sp -= 1
     memory.write(mem, self.sp, cast(u8)(return_addr >> 8))
